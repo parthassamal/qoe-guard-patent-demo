@@ -745,6 +745,190 @@ print('QoE Risk:', compute_qoe_risk(changes_count=5, critical_changes=2).score)
 
 ---
 
+## 🗺️ Future Roadmap
+
+### Phase 1: VS Code Extension (Q2 2026)
+
+Bring QoE-Guard directly into the developer's IDE for seamless API validation workflow.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  VS Code                                                        │
+├─────────────────────────────────────────────────────────────────┤
+│  📁 Explorer    │  📄 api-response.json                         │
+│  ├── src/       │  ┌─────────────────────────────────────────┐  │
+│  ├── tests/     │  │ {                                       │  │
+│  └── baselines/ │  │   "playback": {                         │  │
+│                 │  │     "url": "https://cdn.example.com",   │  │
+│  🛡️ QoE-Guard   │  │     "drm": "widevine"  ⚠️ CHANGED       │  │
+│  ├── Scenarios  │  │   }                                     │  │
+│  ├── Baselines  │  │ }                                       │  │
+│  └── Reports    │  └─────────────────────────────────────────┘  │
+│                 │                                               │
+│  [▶ Validate]   │  QoE Risk: 0.45 ⚠️ WARN                      │
+│  [📥 Capture]   │  Brittleness: 62/100                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Planned Features:**
+| Feature | Description |
+|---------|-------------|
+| **Inline Diff Annotations** | See JSON changes highlighted in editor with risk indicators |
+| **Baseline Management** | Save/load baselines from project `.qoe-guard/` folder |
+| **One-Click Capture** | Capture responses from REST Client / Thunder Client |
+| **Git Integration** | Auto-commit baselines, show diff in source control |
+| **Status Bar Widget** | Quick QoE score for current file |
+| **Command Palette** | `QoE-Guard: Validate`, `QoE-Guard: Compare with Baseline` |
+| **OpenAPI IntelliSense** | Auto-detect OpenAPI files and offer validation |
+| **Terminal Integration** | Run CLI commands with output in Problems panel |
+
+**Architecture:**
+```mermaid
+flowchart LR
+    subgraph vscode [VS Code Extension]
+        UI[Extension UI]
+        LSP[Language Server]
+        FileWatcher[File Watcher]
+    end
+    
+    subgraph backend [QoE-Guard Backend]
+        API[REST API]
+        Scoring[Scoring Engine]
+        AI[AI Analysis]
+    end
+    
+    UI --> LSP
+    LSP --> API
+    FileWatcher --> LSP
+    API --> Scoring
+    API --> AI
+```
+
+---
+
+### Phase 2: Chrome DevTools Panel (Q3 2026)
+
+A dedicated DevTools panel for real-time API monitoring and validation during development.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Chrome DevTools                                                │
+├──────────┬──────────┬──────────┬──────────┬────────────────────┤
+│ Elements │ Console  │ Network  │ QoE-Guard│ Performance        │
+├──────────┴──────────┴──────────┴──────────┴────────────────────┤
+│                                                                 │
+│  📊 Live API Monitor                          [🔴 Recording]   │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Endpoint              │ Status │ QoE Risk │ Drift       │   │
+│  ├───────────────────────┼────────┼──────────┼─────────────┤   │
+│  │ GET /api/playback     │ ✅ 200 │ 0.12     │ None        │   │
+│  │ GET /api/entitlement  │ ⚠️ 200 │ 0.58     │ Runtime     │   │
+│  │ POST /api/analytics   │ ✅ 201 │ 0.05     │ None        │   │
+│  │ GET /api/drm/license  │ ❌ 500 │ 0.95     │ Undocumented│   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  📥 Selected: GET /api/entitlement                             │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Changes from Baseline:                                   │   │
+│  │  • $.features.premium: true → false (BREAKING)          │   │
+│  │  • $.expiresAt: "2024-01" → "2025-01" (value change)   │   │
+│  │                                                         │   │
+│  │ [Save as Baseline] [Compare] [Export cURL] [AI Explain] │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Planned Features:**
+| Feature | Description |
+|---------|-------------|
+| **Live Traffic Capture** | Intercept API responses from Network panel |
+| **Auto-Baseline Detection** | Recognize known endpoints and compare automatically |
+| **Real-time Scoring** | QoE risk and brittleness scores as requests flow |
+| **Drift Alerts** | Toast notifications for critical drift detection |
+| **Request Replay** | Re-execute requests with modified parameters |
+| **Export to QoE-Guard** | Send captured scenarios to main application |
+| **Session Recording** | Record entire browsing sessions for regression testing |
+| **HAR Import/Export** | Compatible with standard HTTP Archive format |
+
+**Architecture:**
+```mermaid
+flowchart TB
+    subgraph browser [Chrome Browser]
+        DevTools[DevTools Panel]
+        NetworkPanel[Network Interceptor]
+        Storage[chrome.storage]
+    end
+    
+    subgraph extension [DevTools Extension]
+        Panel[QoE-Guard Panel]
+        Background[Background Script]
+        ContentScript[Content Script]
+    end
+    
+    subgraph backend [QoE-Guard Backend]
+        API[REST API]
+        WebSocket[WebSocket Server]
+    end
+    
+    NetworkPanel --> ContentScript
+    ContentScript --> Background
+    Background --> Panel
+    Panel --> WebSocket
+    WebSocket --> API
+    Storage --> Panel
+```
+
+---
+
+### Phase 3: Additional Integrations (Q4 2026+)
+
+| Integration | Priority | Description |
+|-------------|----------|-------------|
+| **Postman Plugin** | High | Collection-level validation with QoE scoring |
+| **Insomnia Plugin** | Medium | Similar to Postman integration |
+| **Proxy Mode (mitmproxy)** | High | Capture traffic from any client (mobile, CLI) |
+| **GitHub App** | High | PR comments with validation results |
+| **GitLab Integration** | Medium | MR validation and pipeline gates |
+| **Slack Bot** | Medium | `/qoe-guard validate <url>` commands |
+| **Grafana Dashboard** | Low | Historical QoE metrics visualization |
+| **Terraform Provider** | Low | Infrastructure-as-code for policies |
+
+---
+
+### Roadmap Timeline
+
+```mermaid
+gantt
+    title QoE-Guard Roadmap 2026
+    dateFormat  YYYY-MM
+    section Phase 1
+    VS Code Extension Design     :2026-01, 2026-02
+    VS Code Extension MVP        :2026-02, 2026-04
+    VS Code Extension GA         :2026-04, 2026-06
+    section Phase 2
+    DevTools Panel Design        :2026-04, 2026-05
+    DevTools Panel MVP           :2026-05, 2026-07
+    DevTools Panel GA            :2026-07, 2026-09
+    section Phase 3
+    Postman Plugin               :2026-07, 2026-09
+    GitHub App                   :2026-08, 2026-10
+    Proxy Mode                   :2026-09, 2026-11
+    section Ongoing
+    Core Platform Improvements   :2026-01, 2026-12
+```
+
+---
+
+### Contributing to the Roadmap
+
+We welcome community input on prioritization! To suggest features or vote on the roadmap:
+
+1. **GitHub Discussions** - Start a discussion in the Ideas category
+2. **Issues** - Create a feature request issue with the `roadmap` label
+3. **Pull Requests** - Contribute directly to planned features
+
+---
+
 ## Patent Defensibility
 
 This system addresses six claimable inventive concepts:
