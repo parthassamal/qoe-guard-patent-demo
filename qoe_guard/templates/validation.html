@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Run Validation - QoE-Guard Enterprise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Run Validation</h1>
+    <p class="page-subtitle">Execute validation jobs and view results</p>
+</div>
+
+<!-- Validation Results -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Validation History</h2>
+        <button class="btn btn-sm btn-secondary" onclick="loadRuns()">Refresh</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Run ID</th>
+                    <th>Environment</th>
+                    <th>Operations</th>
+                    <th>Brittleness</th>
+                    <th>QoE Risk</th>
+                    <th>Drift</th>
+                    <th>Decision</th>
+                    <th>Duration</th>
+                    <th>Started</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="runs-table">
+                <tr>
+                    <td colspan="10" class="loading">
+                        <div class="spinner"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Run Details Modal -->
+<div id="run-details-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; padding: 40px; overflow-y: auto;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Validation Run Details</h2>
+                <button class="btn btn-sm btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+            <div id="run-details-content"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadRuns() {
+        try {
+            const data = await API.get('/validations/');
+            const tbody = document.getElementById('runs-table');
+            
+            if (data.runs && data.runs.length > 0) {
+                tbody.innerHTML = data.runs.map(run => `
+                    <tr>
+                        <td><code style="font-size: 12px;">${run.id.slice(0, 8)}...</code></td>
+                        <td>${run.environment}</td>
+                        <td>${run.operation_count}</td>
+                        <td>${formatScore(run.brittleness_score, 'brittleness')}</td>
+                        <td>${formatScore(run.qoe_risk_score, 'qoe')}</td>
+                        <td><span class="badge badge-info">${run.drift_type || 'none'}</span></td>
+                        <td>${formatDecision(run.decision)}</td>
+                        <td>${run.duration_ms ? run.duration_ms + 'ms' : '-'}</td>
+                        <td>${new Date(run.started_at).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="viewDetails('${run.id}')">
+                                Details
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="empty-state">
+                            <p>No validation runs yet</p>
+                            <a href="/inventory" class="btn btn-primary btn-sm" style="margin-top: 12px;">
+                                Import Spec & Run Validation
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading runs:', error);
+        }
+    }
+    
+    async function viewDetails(runId) {
+        try {
+            const data = await API.get(`/validations/${runId}`);
+            
+            document.getElementById('run-details-content').innerHTML = `
+                <div class="grid grid-3" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-label">Brittleness Score</div>
+                        <div class="stat-value">${formatScore(data.brittleness_score, 'brittleness')}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">QoE Risk Score</div>
+                        <div class="stat-value">${formatScore(data.qoe_risk_score, 'qoe')}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Decision</div>
+                        <div class="stat-value">${formatDecision(data.decision)}</div>
+                    </div>
+                </div>
+                
+                ${data.recommendations && data.recommendations.length > 0 ? `
+                    <div style="margin-bottom: 24px;">
+                        <h3 style="margin-bottom: 12px; font-size: 14px; color: var(--text-muted);">Recommendations</h3>
+                        <ul style="margin-left: 20px; color: var(--text-secondary);">
+                            ${data.recommendations.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                
+                <h3 style="margin-bottom: 12px; font-size: 14px; color: var(--text-muted);">Operation Results</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Operation</th>
+                                <th>Status</th>
+                                <th>Response Time</th>
+                                <th>Conformance</th>
+                                <th>Error</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.operation_results.map(r => `
+                                <tr>
+                                    <td><code>${r.request_method} ${r.request_url || '-'}</code></td>
+                                    <td>${r.status_code ? `<span class="badge ${r.status_code < 400 ? 'badge-success' : 'badge-danger'}">${r.status_code}</span>` : '-'}</td>
+                                    <td>${r.response_time_ms ? r.response_time_ms.toFixed(0) + 'ms' : '-'}</td>
+                                    <td><span class="badge ${r.conformance_status === 'pass' ? 'badge-success' : r.conformance_status === 'fail' ? 'badge-danger' : 'badge-warning'}">${r.conformance_status || '-'}</span></td>
+                                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${r.error_message || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            document.getElementById('run-details-modal').style.display = 'block';
+        } catch (error) {
+            console.error('Error loading run details:', error);
+            alert('Error loading run details');
+        }
+    }
+    
+    function closeModal() {
+        document.getElementById('run-details-modal').style.display = 'none';
+    }
+    
+    // Close modal on escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+    });
+    
+    // Load on page load
+    loadRuns();
+</script>
+{% endblock %}

@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Endpoint Inventory - QoE-Guard Enterprise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Endpoint Inventory</h1>
+    <p class="page-subtitle">Discover and manage API endpoints from OpenAPI specifications</p>
+</div>
+
+<!-- Import Form -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Import OpenAPI Specification</h2>
+    </div>
+    <form id="import-form">
+        <div class="form-group">
+            <label class="form-label">Swagger/OpenAPI URL</label>
+            <input type="text" class="form-input" id="swagger-url" 
+                   placeholder="https://api.example.com/swagger.json or Swagger UI page URL">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Headers (JSON, optional)</label>
+            <textarea class="form-textarea" id="import-headers" rows="2" 
+                      placeholder='{"Authorization": "Bearer token"}'></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17,8 12,3 7,8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Discover & Import
+        </button>
+    </form>
+</div>
+
+<!-- Specs List -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Imported Specifications</h2>
+        <button class="btn btn-sm btn-secondary" onclick="loadSpecs()">Refresh</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Source URL</th>
+                    <th>Version</th>
+                    <th>Endpoints</th>
+                    <th>Imported</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="specs-table">
+                <tr>
+                    <td colspan="6" class="loading">
+                        <div class="spinner"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Operations for Selected Spec -->
+<div class="card" id="operations-card" style="display: none;">
+    <div class="card-header">
+        <h2 class="card-title">Operations: <span id="spec-title"></span></h2>
+        <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="operation-search" 
+                   placeholder="Search operations..." style="width: 250px;">
+            <select class="form-select" id="method-filter" style="width: 120px;">
+                <option value="">All Methods</option>
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <option value="PATCH">PATCH</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all-ops"></th>
+                    <th>Method</th>
+                    <th>Path</th>
+                    <th>Operation ID</th>
+                    <th>Tags</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="operations-table">
+            </tbody>
+        </table>
+    </div>
+    <div style="margin-top: 16px; display: flex; gap: 12px;">
+        <button class="btn btn-primary" id="validate-selected" disabled>
+            Validate Selected (<span id="selected-count">0</span>)
+        </button>
+        <button class="btn btn-secondary" id="generate-curl" disabled>
+            Generate cURL
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentSpecId = null;
+    let selectedOperations = new Set();
+    
+    // Load specs on page load
+    async function loadSpecs() {
+        try {
+            const data = await API.get('/specs/');
+            const tbody = document.getElementById('specs-table');
+            
+            if (data.specs && data.specs.length > 0) {
+                tbody.innerHTML = data.specs.map(spec => `
+                    <tr onclick="loadOperations('${spec.id}', '${spec.title || 'Untitled'}')" style="cursor: pointer;">
+                        <td><strong>${spec.title || 'Untitled'}</strong></td>
+                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                            <a href="${spec.source_url}" target="_blank" onclick="event.stopPropagation();">
+                                ${spec.source_url}
+                            </a>
+                        </td>
+                        <td>${spec.spec_version || '-'}</td>
+                        <td><strong>${spec.operation_count}</strong></td>
+                        <td>${new Date(spec.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); loadOperations('${spec.id}', '${spec.title || 'Untitled'}')">
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <p>No specifications imported yet</p>
+                            <p style="font-size: 13px;">Import a Swagger/OpenAPI URL above to get started</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading specs:', error);
+        }
+    }
+    
+    // Load operations for a spec
+    async function loadOperations(specId, title) {
+        currentSpecId = specId;
+        selectedOperations.clear();
+        updateSelectedCount();
+        
+        document.getElementById('operations-card').style.display = 'block';
+        document.getElementById('spec-title').textContent = title;
+        
+        const tbody = document.getElementById('operations-table');
+        tbody.innerHTML = '<tr><td colspan="6" class="loading"><div class="spinner"></div></td></tr>';
+        
+        try {
+            const data = await API.get(`/specs/${specId}/operations`);
+            
+            if (data.operations && data.operations.length > 0) {
+                renderOperations(data.operations);
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <p>No operations found in this spec</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading operations:', error);
+            tbody.innerHTML = '<tr><td colspan="6">Error loading operations</td></tr>';
+        }
+    }
+    
+    function renderOperations(operations) {
+        const tbody = document.getElementById('operations-table');
+        const methodFilter = document.getElementById('method-filter').value;
+        const search = document.getElementById('operation-search').value.toLowerCase();
+        
+        let filtered = operations;
+        
+        if (methodFilter) {
+            filtered = filtered.filter(op => op.method === methodFilter);
+        }
+        
+        if (search) {
+            filtered = filtered.filter(op => 
+                op.path.toLowerCase().includes(search) ||
+                (op.operation_id && op.operation_id.toLowerCase().includes(search)) ||
+                (op.summary && op.summary.toLowerCase().includes(search))
+            );
+        }
+        
+        tbody.innerHTML = filtered.map(op => `
+            <tr>
+                <td>
+                    <input type="checkbox" class="op-checkbox" value="${op.id}" 
+                           ${selectedOperations.has(op.id) ? 'checked' : ''}
+                           onchange="toggleOperation('${op.id}')">
+                </td>
+                <td>
+                    <span class="badge badge-info">${op.method}</span>
+                </td>
+                <td><code>${op.path}</code></td>
+                <td>${op.operation_id || '-'}</td>
+                <td>${(op.tags || []).join(', ') || '-'}</td>
+                <td>${op.deprecated ? '<span class="badge badge-warning">Deprecated</span>' : '<span class="badge badge-success">Active</span>'}</td>
+            </tr>
+        `).join('');
+    }
+    
+    function toggleOperation(opId) {
+        if (selectedOperations.has(opId)) {
+            selectedOperations.delete(opId);
+        } else {
+            selectedOperations.add(opId);
+        }
+        updateSelectedCount();
+    }
+    
+    function updateSelectedCount() {
+        const count = selectedOperations.size;
+        document.getElementById('selected-count').textContent = count;
+        document.getElementById('validate-selected').disabled = count === 0;
+        document.getElementById('generate-curl').disabled = count === 0;
+    }
+    
+    // Import form handler
+    document.getElementById('import-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const url = document.getElementById('swagger-url').value;
+        let headers = null;
+        
+        try {
+            const headersInput = document.getElementById('import-headers').value;
+            if (headersInput) {
+                headers = JSON.parse(headersInput);
+            }
+        } catch (err) {
+            alert('Invalid JSON in headers field');
+            return;
+        }
+        
+        const btn = e.target.querySelector('button');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner" style="width: 16px; height: 16px;"></div> Discovering...';
+        
+        try {
+            await API.post('/specs/discover', { url, headers });
+            await loadSpecs();
+            document.getElementById('swagger-url').value = '';
+            document.getElementById('import-headers').value = '';
+        } catch (error) {
+            alert('Error importing spec: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17,8 12,3 7,8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Discover & Import
+            `;
+        }
+    });
+    
+    // Filters
+    document.getElementById('method-filter').addEventListener('change', () => {
+        if (currentSpecId) loadOperations(currentSpecId, document.getElementById('spec-title').textContent);
+    });
+    
+    document.getElementById('operation-search').addEventListener('input', () => {
+        if (currentSpecId) loadOperations(currentSpecId, document.getElementById('spec-title').textContent);
+    });
+    
+    // Select all
+    document.getElementById('select-all-ops').addEventListener('change', (e) => {
+        const checkboxes = document.querySelectorAll('.op-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = e.target.checked;
+            if (e.target.checked) {
+                selectedOperations.add(cb.value);
+            } else {
+                selectedOperations.delete(cb.value);
+            }
+        });
+        updateSelectedCount();
+    });
+    
+    // Validate selected
+    document.getElementById('validate-selected').addEventListener('click', async () => {
+        if (selectedOperations.size === 0) return;
+        
+        try {
+            const result = await API.post('/validations/', {
+                spec_id: currentSpecId,
+                selected_operations: Array.from(selectedOperations),
+            });
+            alert(`Validation started! Run ID: ${result.id}`);
+        } catch (error) {
+            alert('Error starting validation: ' + error.message);
+        }
+    });
+    
+    // Load on page load
+    loadSpecs();
+</script>
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - QoE-Guard Enterprise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Settings</h1>
+    <p class="page-subtitle">Configure criticality profiles and system settings</p>
+</div>
+
+<!-- Criticality Profiles -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Criticality Profiles</h2>
+        <button class="btn btn-sm btn-primary" onclick="addProfile()">Add Profile</button>
+    </div>
+    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+        Define criticality weights for endpoint tags and JSON paths. Higher weights (closer to 1.0) indicate more critical components.
+    </p>
+    
+    <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted);">Tag Profiles</h3>
+    <div class="table-container" style="margin-bottom: 24px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tag Name</th>
+                    <th>Weight</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tag-profiles">
+                <tr><td colspan="4" class="loading"><div class="spinner"></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted);">Path Profiles</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>JSON Path Pattern</th>
+                    <th>Weight</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="path-profiles">
+                <tr><td colspan="4" class="loading"><div class="spinner"></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Default Profiles -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Default Criticality Values</h2>
+    </div>
+    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+        These are the built-in default values. Add custom profiles above to override.
+    </p>
+    
+    <div class="grid grid-2">
+        <div>
+            <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted);">Tag Defaults</h3>
+            <div style="font-family: var(--font-mono); font-size: 13px; background: var(--bg-tertiary); padding: 16px; border-radius: 8px; max-height: 300px; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>playback</span> <span style="color: var(--accent-danger);">1.00</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>entitlement</span> <span style="color: var(--accent-danger);">0.95</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>drm</span> <span style="color: var(--accent-danger);">0.95</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>ads</span> <span style="color: var(--accent-warning);">0.85</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>auth</span> <span style="color: var(--accent-warning);">0.80</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>session</span> <span style="color: var(--accent-warning);">0.75</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>user</span> <span style="color: var(--text-secondary);">0.60</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>profile</span> <span style="color: var(--text-secondary);">0.50</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>metadata</span> <span style="color: var(--text-secondary);">0.40</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>search</span> <span style="color: var(--text-secondary);">0.35</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>analytics</span> <span style="color: var(--text-muted);">0.30</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>health</span> <span style="color: var(--text-muted);">0.10</span></div>
+            </div>
+        </div>
+        <div>
+            <h3 style="font-size: 14px; margin-bottom: 12px; color: var(--text-muted);">Path Defaults</h3>
+            <div style="font-family: var(--font-mono); font-size: 13px; background: var(--bg-tertiary); padding: 16px; border-radius: 8px; max-height: 300px; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.playback.manifestUrl</span> <span style="color: var(--accent-danger);">1.00</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.drm.licenseUrl</span> <span style="color: var(--accent-danger);">1.00</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.entitlement.allowed</span> <span style="color: var(--accent-danger);">0.95</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.drm.*</span> <span style="color: var(--accent-danger);">0.90</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.ads.adDecision</span> <span style="color: var(--accent-warning);">0.85</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.playback.maxBitrateKbps</span> <span style="color: var(--accent-warning);">0.70</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.playback.*</span> <span style="color: var(--text-secondary);">0.60</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.metadata.*</span> <span style="color: var(--text-muted);">0.30</span></div>
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;"><span>$.analytics.*</span> <span style="color: var(--text-muted);">0.20</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Info -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">System Information</h2>
+    </div>
+    <div class="grid grid-3">
+        <div>
+            <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Version</div>
+            <div style="font-family: var(--font-mono);">1.0.0</div>
+        </div>
+        <div>
+            <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Database</div>
+            <div style="font-family: var(--font-mono);">SQLite (Demo Mode)</div>
+        </div>
+        <div>
+            <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 4px;">Model Version</div>
+            <div style="font-family: var(--font-mono);">qoe-risk-v1</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadProfiles() {
+        try {
+            const data = await API.get('/governance/criticality');
+            
+            const tagProfiles = data.filter(p => p.profile_type === 'tag');
+            const pathProfiles = data.filter(p => p.profile_type === 'path');
+            
+            const tagTbody = document.getElementById('tag-profiles');
+            const pathTbody = document.getElementById('path-profiles');
+            
+            if (tagProfiles.length > 0) {
+                tagTbody.innerHTML = tagProfiles.map(p => `
+                    <tr>
+                        <td><code>${p.name}</code></td>
+                        <td><span class="score">${p.weight.toFixed(2)}</span></td>
+                        <td>${p.description || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProfile('${p.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tagTbody.innerHTML = '<tr><td colspan="4" class="empty-state">No custom tag profiles</td></tr>';
+            }
+            
+            if (pathProfiles.length > 0) {
+                pathTbody.innerHTML = pathProfiles.map(p => `
+                    <tr>
+                        <td><code>${p.name}</code></td>
+                        <td><span class="score">${p.weight.toFixed(2)}</span></td>
+                        <td>${p.description || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProfile('${p.id}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                pathTbody.innerHTML = '<tr><td colspan="4" class="empty-state">No custom path profiles</td></tr>';
+            }
+        } catch (error) {
+            console.error('Error loading profiles:', error);
+            document.getElementById('tag-profiles').innerHTML = '<tr><td colspan="4" class="empty-state">No custom profiles</td></tr>';
+            document.getElementById('path-profiles').innerHTML = '<tr><td colspan="4" class="empty-state">No custom profiles</td></tr>';
+        }
+    }
+    
+    function addProfile() {
+        const type = prompt('Profile type (tag or path):');
+        if (!type || !['tag', 'path'].includes(type)) {
+            alert('Invalid type. Use "tag" or "path".');
+            return;
+        }
+        
+        const name = prompt(type === 'tag' ? 'Tag name:' : 'JSON path pattern (e.g., $.custom.path):');
+        if (!name) return;
+        
+        const weight = parseFloat(prompt('Weight (0.0 - 1.0):', '0.5'));
+        if (isNaN(weight) || weight < 0 || weight > 1) {
+            alert('Invalid weight. Must be between 0.0 and 1.0.');
+            return;
+        }
+        
+        const description = prompt('Description (optional):') || null;
+        
+        API.post('/governance/criticality', {
+            name,
+            profile_type: type,
+            weight,
+            description,
+        }).then(() => {
+            loadProfiles();
+        }).catch(error => {
+            alert('Error creating profile: ' + error.message);
+        });
+    }
+    
+    async function deleteProfile(profileId) {
+        if (!confirm('Delete this profile?')) return;
+        try {
+            await fetch(`/governance/criticality/${profileId}`, { method: 'DELETE' });
+            loadProfiles();
+        } catch (error) {
+            alert('Error deleting profile: ' + error.message);
+        }
+    }
+    
+    loadProfiles();
+</script>
+{% endblock %}

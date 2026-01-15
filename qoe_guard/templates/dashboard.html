@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - QoE-Guard Enterprise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Overview of your API validation health and metrics</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-4" id="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Specs</div>
+        <div class="stat-value" id="stat-specs">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Endpoints</div>
+        <div class="stat-value" id="stat-endpoints">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Validation Runs</div>
+        <div class="stat-value" id="stat-runs">-</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Avg Brittleness</div>
+        <div class="stat-value" id="stat-brittleness">-</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Quick Actions</h2>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="/inventory" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            Import Swagger
+        </a>
+        <a href="/validate" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22,4 12,14.01 9,11.01"/>
+            </svg>
+            Run Validation
+        </a>
+        <a href="/governance" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            Review Promotions
+        </a>
+    </div>
+</div>
+
+<!-- Recent Runs -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Recent Validation Runs</h2>
+        <a href="/validations" class="btn btn-sm btn-secondary">View All</a>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Run ID</th>
+                    <th>Environment</th>
+                    <th>Brittleness</th>
+                    <th>QoE Risk</th>
+                    <th>Decision</th>
+                    <th>Duration</th>
+                    <th>Started</th>
+                </tr>
+            </thead>
+            <tbody id="recent-runs">
+                <tr>
+                    <td colspan="7" class="loading">
+                        <div class="spinner"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Score Distribution -->
+<div class="grid grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Brittleness Distribution</h2>
+        </div>
+        <div id="brittleness-chart" style="height: 200px; display: flex; align-items: flex-end; gap: 8px; padding: 20px;">
+            <div style="flex: 1; background: var(--accent-success); border-radius: 4px; height: 60%;" title="Low (0-50)"></div>
+            <div style="flex: 1; background: var(--accent-warning); border-radius: 4px; height: 30%;" title="Medium (50-75)"></div>
+            <div style="flex: 1; background: var(--accent-danger); border-radius: 4px; height: 10%;" title="High (75+)"></div>
+        </div>
+        <div style="display: flex; justify-content: space-around; font-size: 12px; color: var(--text-muted);">
+            <span>Low (0-50)</span>
+            <span>Medium (50-75)</span>
+            <span>High (75+)</span>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Decision Summary</h2>
+        </div>
+        <div style="display: flex; gap: 24px; padding: 20px;">
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 48px; font-weight: 700; color: var(--accent-success);" id="decision-pass">0</div>
+                <div style="font-size: 12px; color: var(--text-muted);">PASS</div>
+            </div>
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 48px; font-weight: 700; color: var(--accent-warning);" id="decision-warn">0</div>
+                <div style="font-size: 12px; color: var(--text-muted);">WARN</div>
+            </div>
+            <div style="text-align: center; flex: 1;">
+                <div style="font-size: 48px; font-weight: 700; color: var(--accent-danger);" id="decision-fail">0</div>
+                <div style="font-size: 12px; color: var(--text-muted);">FAIL</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadDashboard() {
+        try {
+            // Load stats
+            const [specs, runs] = await Promise.all([
+                API.get('/specs/').catch(() => ({ specs: [], total: 0 })),
+                API.get('/validations/').catch(() => ({ runs: [], total: 0 })),
+            ]);
+            
+            // Update stats
+            document.getElementById('stat-specs').textContent = specs.total || 0;
+            document.getElementById('stat-runs').textContent = runs.total || 0;
+            
+            // Calculate endpoint count and avg brittleness
+            let endpointCount = 0;
+            let brittlenessSum = 0;
+            let brittlenessCount = 0;
+            let passCount = 0, warnCount = 0, failCount = 0;
+            
+            for (const spec of (specs.specs || [])) {
+                endpointCount += spec.operation_count || 0;
+            }
+            
+            for (const run of (runs.runs || [])) {
+                if (run.brittleness_score !== null) {
+                    brittlenessSum += run.brittleness_score;
+                    brittlenessCount++;
+                }
+                if (run.decision === 'pass') passCount++;
+                else if (run.decision === 'warn') warnCount++;
+                else if (run.decision === 'fail') failCount++;
+            }
+            
+            document.getElementById('stat-endpoints').textContent = endpointCount;
+            document.getElementById('stat-brittleness').textContent = 
+                brittlenessCount > 0 ? (brittlenessSum / brittlenessCount).toFixed(1) : '-';
+            
+            document.getElementById('decision-pass').textContent = passCount;
+            document.getElementById('decision-warn').textContent = warnCount;
+            document.getElementById('decision-fail').textContent = failCount;
+            
+            // Render recent runs
+            const tbody = document.getElementById('recent-runs');
+            if (runs.runs && runs.runs.length > 0) {
+                tbody.innerHTML = runs.runs.slice(0, 10).map(run => `
+                    <tr>
+                        <td><code style="font-size: 12px;">${run.id.slice(0, 8)}...</code></td>
+                        <td>${run.environment}</td>
+                        <td>${formatScore(run.brittleness_score, 'brittleness')}</td>
+                        <td>${formatScore(run.qoe_risk_score, 'qoe')}</td>
+                        <td>${formatDecision(run.decision)}</td>
+                        <td>${run.duration_ms ? run.duration_ms + 'ms' : '-'}</td>
+                        <td>${new Date(run.started_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <p>No validation runs yet</p>
+                            <a href="/validate" class="btn btn-primary btn-sm" style="margin-top: 12px;">Run First Validation</a>
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+        }
+    }
+    
+    loadDashboard();
+</script>
+{% endblock %}

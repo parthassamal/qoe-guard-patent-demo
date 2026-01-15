@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Governance - QoE-Guard Enterprise{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Baseline Governance</h1>
+    <p class="page-subtitle">Manage baseline promotions and approvals</p>
+</div>
+
+<!-- Pending Approvals -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Pending Approvals</h2>
+        <button class="btn btn-sm btn-secondary" onclick="loadPending()">Refresh</button>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Requester</th>
+                    <th>Justification</th>
+                    <th>Stable Runs</th>
+                    <th>QoE Check</th>
+                    <th>Requested</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="pending-table">
+                <tr>
+                    <td colspan="7" class="loading">
+                        <div class="spinner"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Promotion History -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Promotion History</h2>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Status</th>
+                    <th>Requester</th>
+                    <th>New Baseline</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody id="history-table">
+                <tr>
+                    <td colspan="5" class="loading">
+                        <div class="spinner"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Policy Configuration -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Policy Configuration</h2>
+        <button class="btn btn-sm btn-primary" onclick="savePolicy()">Save Changes</button>
+    </div>
+    <div class="grid grid-2">
+        <div>
+            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-secondary);">Thresholds</h3>
+            <div class="form-group">
+                <label class="form-label">Brittleness Fail Threshold</label>
+                <input type="number" class="form-input" id="brittleness-fail" value="75" step="1" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Brittleness Warn Threshold</label>
+                <input type="number" class="form-input" id="brittleness-warn" value="50" step="1" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label class="form-label">QoE Risk Fail Threshold</label>
+                <input type="number" class="form-input" id="qoe-fail" value="0.72" step="0.01" min="0" max="1">
+            </div>
+            <div class="form-group">
+                <label class="form-label">QoE Risk Warn Threshold</label>
+                <input type="number" class="form-input" id="qoe-warn" value="0.45" step="0.01" min="0" max="1">
+            </div>
+        </div>
+        <div>
+            <h3 style="font-size: 14px; margin-bottom: 16px; color: var(--text-secondary);">Override Rules</h3>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="fail-type-changes" checked>
+                    Fail on critical type changes
+                </label>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="fail-undocumented" checked>
+                    Fail on undocumented drift
+                </label>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="warn-spec-drift" checked>
+                    Warn on spec drift
+                </label>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="ci-hard-gate" checked>
+                    CI hard gate (block on fail)
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadPending() {
+        try {
+            const data = await API.get('/governance/promotions/pending');
+            const tbody = document.getElementById('pending-table');
+            
+            if (data.requests && data.requests.length > 0) {
+                tbody.innerHTML = data.requests.map(req => `
+                    <tr>
+                        <td><code>${req.scenario_id.slice(0, 8)}...</code></td>
+                        <td>${req.requester_id.slice(0, 8)}...</td>
+                        <td style="max-width: 200px;">${req.justification || '-'}</td>
+                        <td>${req.stable_runs_count || 0}</td>
+                        <td>${req.qoe_degradation_check ? '<span class="badge badge-success">Pass</span>' : '<span class="badge badge-danger">Fail</span>'}</td>
+                        <td>${new Date(req.created_at).toLocaleString()}</td>
+                        <td>
+                            <button class="btn btn-sm btn-success" onclick="approvePromotion('${req.id}')">Approve</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectPromotion('${req.id}')">Reject</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <p>No pending promotion requests</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading pending:', error);
+            document.getElementById('pending-table').innerHTML = `
+                <tr><td colspan="7" class="empty-state">No pending requests</td></tr>
+            `;
+        }
+    }
+    
+    async function loadHistory() {
+        try {
+            const data = await API.get('/governance/promotions');
+            const tbody = document.getElementById('history-table');
+            
+            if (data.requests && data.requests.length > 0) {
+                tbody.innerHTML = data.requests.map(req => `
+                    <tr>
+                        <td><code>${req.scenario_id.slice(0, 8)}...</code></td>
+                        <td><span class="badge badge-${req.status === 'approved' ? 'success' : req.status === 'rejected' ? 'danger' : 'warning'}">${req.status}</span></td>
+                        <td>${req.requester_id.slice(0, 8)}...</td>
+                        <td><code>${req.new_baseline_hash.slice(0, 12)}...</code></td>
+                        <td>${new Date(req.created_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr><td colspan="5" class="empty-state">No promotion history</td></tr>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading history:', error);
+            document.getElementById('history-table').innerHTML = `
+                <tr><td colspan="5" class="empty-state">No promotion history</td></tr>
+            `;
+        }
+    }
+    
+    async function loadPolicy() {
+        try {
+            const data = await API.get('/governance/policy');
+            
+            document.getElementById('brittleness-fail').value = data.brittleness_fail_threshold;
+            document.getElementById('brittleness-warn').value = data.brittleness_warn_threshold;
+            document.getElementById('qoe-fail').value = data.qoe_fail_threshold;
+            document.getElementById('qoe-warn').value = data.qoe_warn_threshold;
+            document.getElementById('fail-type-changes').checked = data.fail_on_critical_type_changes;
+            document.getElementById('fail-undocumented').checked = data.fail_on_undocumented_drift;
+            document.getElementById('warn-spec-drift').checked = data.warn_on_spec_drift;
+        } catch (error) {
+            console.error('Error loading policy:', error);
+        }
+    }
+    
+    async function savePolicy() {
+        try {
+            await API.post('/governance/policy', {
+                brittleness_fail_threshold: parseFloat(document.getElementById('brittleness-fail').value),
+                brittleness_warn_threshold: parseFloat(document.getElementById('brittleness-warn').value),
+                qoe_fail_threshold: parseFloat(document.getElementById('qoe-fail').value),
+                qoe_warn_threshold: parseFloat(document.getElementById('qoe-warn').value),
+                fail_on_critical_type_changes: document.getElementById('fail-type-changes').checked,
+                fail_on_undocumented_drift: document.getElementById('fail-undocumented').checked,
+                warn_on_spec_drift: document.getElementById('warn-spec-drift').checked,
+            });
+            alert('Policy saved successfully');
+        } catch (error) {
+            alert('Error saving policy: ' + error.message);
+        }
+    }
+    
+    async function approvePromotion(requestId) {
+        if (!confirm('Approve this baseline promotion?')) return;
+        try {
+            await API.post(`/governance/promotions/${requestId}/approve`, {});
+            loadPending();
+            loadHistory();
+        } catch (error) {
+            alert('Error approving: ' + error.message);
+        }
+    }
+    
+    async function rejectPromotion(requestId) {
+        const reason = prompt('Reason for rejection:');
+        if (reason === null) return;
+        try {
+            await API.post(`/governance/promotions/${requestId}/reject`, { reason });
+            loadPending();
+            loadHistory();
+        } catch (error) {
+            alert('Error rejecting: ' + error.message);
+        }
+    }
+    
+    // Load on page load
+    loadPending();
+    loadHistory();
+    loadPolicy();
+</script>
+{% endblock %}
