@@ -1,0 +1,41 @@
+[
+  {
+    "scenario_id": "e7838caf-0aad-4a0c-a9ed-08d67841bd16",
+    "name": "demo-play-v1",
+    "base_url": "http://127.0.0.1:8001",
+    "endpoint": "/play",
+    "baseline_response": {
+      "requestId": "req-123",
+      "playback": {
+        "manifestUrl": "https://cdn.example.com/manifest.m3u8",
+        "drm": {
+          "type": "widevine",
+          "licenseUrl": "https://drm.example.com/wv"
+        },
+        "maxBitrateKbps": 8000,
+        "startPositionSec": 0
+      },
+      "entitlement": {
+        "allowed": true,
+        "plan": "premium"
+      },
+      "ads": {
+        "enabled": true,
+        "adDecision": {
+          "adTag": "https://ads.example.com/vast"
+        }
+      },
+      "metadata": {
+        "title": "Demo Movie",
+        "genre": "Drama",
+        "durationSec": 5400
+      }
+    },
+    "tags": [
+      "baseline",
+      "demo"
+    ],
+    "created_at": 1768443716,
+    "updated_at": 1768443716
+  }
+]

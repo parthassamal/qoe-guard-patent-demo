@@ -1,0 +1,249 @@
+[
+  {
+    "run_id": "ecb28477-b8ca-422a-9de4-cceab465d63a",
+    "scenario_id": "e7838caf-0aad-4a0c-a9ed-08d67841bd16",
+    "endpoint": "/play",
+    "candidate_version": 1,
+    "created_at": 1768443906,
+    "risk_score": 0.2315,
+    "action": "PASS",
+    "reasons": {
+      "policy": {
+        "fail_threshold": 0.72,
+        "warn_threshold": 0.45,
+        "critical_override": ">=3 critical + >=1 type change => FAIL"
+      },
+      "top_signals": [
+        {
+          "signal": "critical_changes",
+          "value": 0
+        },
+        {
+          "signal": "type_changes",
+          "value": 0
+        },
+        {
+          "signal": "removed_fields",
+          "value": 0
+        },
+        {
+          "signal": "numeric_delta_max",
+          "value": 0.0
+        }
+      ]
+    },
+    "features": {
+      "added_fields": 0,
+      "removed_fields": 0,
+      "type_changes": 0,
+      "value_changes": 0,
+      "numeric_delta_sum": 0.0,
+      "numeric_delta_max": 0.0,
+      "array_len_changes": 0,
+      "critical_changes": 0
+    },
+    "changes": [],
+    "baseline": {
+      "requestId": "req-123",
+      "playback": {
+        "manifestUrl": "https://cdn.example.com/manifest.m3u8",
+        "drm": {
+          "type": "widevine",
+          "licenseUrl": "https://drm.example.com/wv"
+        },
+        "maxBitrateKbps": 8000,
+        "startPositionSec": 0
+      },
+      "entitlement": {
+        "allowed": true,
+        "plan": "premium"
+      },
+      "ads": {
+        "enabled": true,
+        "adDecision": {
+          "adTag": "https://ads.example.com/vast"
+        }
+      },
+      "metadata": {
+        "title": "Demo Movie",
+        "genre": "Drama",
+        "durationSec": 5400
+      }
+    },
+    "candidate": {
+      "requestId": "req-123",
+      "playback": {
+        "manifestUrl": "https://cdn.example.com/manifest.m3u8",
+        "drm": {
+          "type": "widevine",
+          "licenseUrl": "https://drm.example.com/wv"
+        },
+        "maxBitrateKbps": 8000,
+        "startPositionSec": 0
+      },
+      "entitlement": {
+        "allowed": true,
+        "plan": "premium"
+      },
+      "ads": {
+        "enabled": true,
+        "adDecision": {
+          "adTag": "https://ads.example.com/vast"
+        }
+      },
+      "metadata": {
+        "title": "Demo Movie",
+        "genre": "Drama",
+        "durationSec": 5400
+      }
+    }
+  },
+  {
+    "run_id": "210abd0e-88bf-412d-a14f-15197b631e46",
+    "scenario_id": "e7838caf-0aad-4a0c-a9ed-08d67841bd16",
+    "endpoint": "/play",
+    "candidate_version": 2,
+    "created_at": 1768444019,
+    "risk_score": 0.6757,
+    "action": "FAIL",
+    "reasons": {
+      "policy": {
+        "fail_threshold": 0.72,
+        "warn_threshold": 0.45,
+        "critical_override": ">=3 critical + >=1 type change => FAIL"
+      },
+      "top_signals": [
+        {
+          "signal": "critical_changes",
+          "value": 6
+        },
+        {
+          "signal": "type_changes",
+          "value": 1
+        },
+        {
+          "signal": "removed_fields",
+          "value": 1
+        },
+        {
+          "signal": "numeric_delta_max",
+          "value": 12.0
+        }
+      ]
+    },
+    "features": {
+      "added_fields": 3,
+      "removed_fields": 1,
+      "type_changes": 1,
+      "value_changes": 2,
+      "numeric_delta_sum": 12.0,
+      "numeric_delta_max": 12.0,
+      "array_len_changes": 0,
+      "critical_changes": 6
+    },
+    "changes": [
+      {
+        "path": "$.ads.adDecision",
+        "change_type": "removed",
+        "before": "{\n  \"adTag\": \"https://ads.example.com/vast\"\n}",
+        "after": "None"
+      },
+      {
+        "path": "$.entitlement.regionPolicy",
+        "change_type": "added",
+        "before": "None",
+        "after": "{\n  \"geo\": \"US\",\n  \"allowHD\": true\n}"
+      },
+      {
+        "path": "$.metadata.audioTracks",
+        "change_type": "added",
+        "before": "None",
+        "after": "[\n  \"en\",\n  \"es\"\n]"
+      },
+      {
+        "path": "$.playback.lowLatencyMode",
+        "change_type": "added",
+        "before": "None",
+        "after": "True"
+      },
+      {
+        "path": "$.playback.manifestUrl",
+        "change_type": "value_changed",
+        "before": "https://cdn.example.com/manifest.m3u8",
+        "after": "https://cdn2.example.com/manifest_ll.m3u8"
+      },
+      {
+        "path": "$.playback.maxBitrateKbps",
+        "change_type": "type_changed",
+        "before": "8000",
+        "after": "6000"
+      },
+      {
+        "path": "$.playback.startPositionSec",
+        "change_type": "value_changed",
+        "before": "0",
+        "after": "12"
+      }
+    ],
+    "baseline": {
+      "requestId": "req-123",
+      "playback": {
+        "manifestUrl": "https://cdn.example.com/manifest.m3u8",
+        "drm": {
+          "type": "widevine",
+          "licenseUrl": "https://drm.example.com/wv"
+        },
+        "maxBitrateKbps": 8000,
+        "startPositionSec": 0
+      },
+      "entitlement": {
+        "allowed": true,
+        "plan": "premium"
+      },
+      "ads": {
+        "enabled": true,
+        "adDecision": {
+          "adTag": "https://ads.example.com/vast"
+        }
+      },
+      "metadata": {
+        "title": "Demo Movie",
+        "genre": "Drama",
+        "durationSec": 5400
+      }
+    },
+    "candidate": {
+      "requestId": "req-123",
+      "playback": {
+        "manifestUrl": "https://cdn2.example.com/manifest_ll.m3u8",
+        "drm": {
+          "type": "widevine",
+          "licenseUrl": "https://drm.example.com/wv"
+        },
+        "maxBitrateKbps": "6000",
+        "startPositionSec": 12,
+        "lowLatencyMode": true
+      },
+      "entitlement": {
+        "allowed": true,
+        "plan": "premium",
+        "regionPolicy": {
+          "geo": "US",
+          "allowHD": true
+        }
+      },
+      "ads": {
+        "enabled": true
+      },
+      "metadata": {
+        "title": "Demo Movie",
+        "genre": "Drama",
+        "durationSec": 5400,
+        "audioTracks": [
+          "en",
+          "es"
+        ]
+      }
+    }
+  }
+]

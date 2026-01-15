@@ -1,0 +1,406 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QoE-Guard Patent Demo</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c1526;
+      --text:#e7eefc;
+      --muted:#a9b7d3;
+      --border:rgba(231,238,252,.12);
+      --accent:#7aa2ff;
+      --good:#6ee7a8;
+      --bad:#ff7a7a;
+      --warn:#ffd37a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(122,162,255,.35), transparent 60%),
+                  radial-gradient(800px 500px at 90% 0%, rgba(110,231,168,.18), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      line-height:1.35;
+    }
+    a{ color: var(--accent); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+    .container{ max-width: 1120px; margin: 0 auto; padding: 28px 16px 60px; }
+    .header{ display:flex; gap:16px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; margin-bottom: 18px; }
+    .title{ margin:0; font-size: 28px; letter-spacing:.2px; }
+    .subtitle{ margin:6px 0 0; color:var(--muted); max-width: 820px; }
+    .grid{ display:grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
+    @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card h2{ margin:0 0 10px; font-size: 16px; letter-spacing: .2px; }
+    .muted{ color: var(--muted); }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      padding: 8px 10px; border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .actions{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      text-decoration:none;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      font-size: 13px;
+    }
+    .btn:hover{ background: rgba(122,162,255,.12); border-color: rgba(122,162,255,.35); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{ background: rgba(122,162,255,.18); border-color: rgba(122,162,255,.45); }
+    .btn.good{ background: rgba(110,231,168,.12); border-color: rgba(110,231,168,.35); }
+    .btn.warn{ background: rgba(255,211,122,.12); border-color: rgba(255,211,122,.35); }
+    .btn.bad{ background: rgba(255,122,122,.12); border-color: rgba(255,122,122,.35); }
+    input, textarea, select{
+      width:100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      padding: 10px 10px;
+      outline:none;
+      font-size: 13px;
+    }
+    textarea{ min-height: 90px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 680px){ .row{ grid-template-columns: 1fr; } }
+    .help{ font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+    .alert{
+      border-radius: 12px;
+      padding: 12px 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      margin-bottom: 12px;
+    }
+    .alert.error{ border-color: rgba(255,122,122,.35); background: rgba(255,122,122,.08); }
+    .alert.ok{ border-color: rgba(110,231,168,.35); background: rgba(110,231,168,.08); }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-top: 1px solid rgba(231,238,252,.08); padding: 10px 10px; text-align: left; vertical-align: top; font-size: 13px; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; color: rgba(231,238,252,.9); }
+    .badge{
+      padding: 3px 10px; border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      display:inline-block;
+      background: rgba(0,0,0,.18);
+    }
+    details{
+      border: 1px solid rgba(231,238,252,.10);
+      border-radius: 12px;
+      padding: 10px 10px;
+      background: rgba(0,0,0,.14);
+    }
+    summary{ cursor:pointer; color: var(--text); font-weight: 600; }
+    .stack{ display:flex; flex-direction:column; gap: 10px; }
+    .kpi{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .small{ font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 class="title">QoE-Guard</h1>
+        <p class="subtitle">Scenario baseline → Candidate run → QoE risk score → PASS/WARN/FAIL → Explainable report (auditable evidence, path-level diffs)</p>
+      </div>
+      <div class="kpi">
+        <span class="pill">Default target: <code>{{ default_base_url }}</code></span>
+        <span class="pill">Default endpoint: <code>{{ default_endpoint }}</code></span>
+      </div>
+    </div>
+
+    {% if error %}
+      <div class="alert error">
+        <b style="color:var(--bad);">Error</b>
+        <div class="small" style="margin-top:6px;">{{ error }}</div>
+      </div>
+    {% endif %}
+    {% if msg %}
+      <div class="alert ok">
+        <b style="color:var(--good);">{{ msg }}</b>
+      </div>
+    {% endif %}
+
+    <div class="grid">
+      <div class="card">
+        <h2>Demo mode (local)</h2>
+        <div class="actions">
+          <a class="btn primary" href="/seed">Seed baseline</a>
+          <a class="btn good" href="/run?v=1">Run v1 (PASS)</a>
+          <a class="btn warn" href="/run?v=2">Run v2 (WARN/FAIL)</a>
+        </div>
+        <div class="help">These buttons hit the local demo target API. For real endpoints/data, use “Real data mode”.</div>
+      </div>
+
+      <div class="card">
+        <h2>Quick tips</h2>
+        <div class="stack">
+          <div class="small"><b>Security:</b> headers are only used for the request and are not stored. Prefer short-lived tokens.</div>
+          <div class="small"><b>Best practice:</b> seed a baseline from a stable “known-good” response, then validate candidate versions (staging/canary) against it.</div>
+          <div class="small"><b>Explainability:</b> reports include top signals and path-level diffs for audit.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h2>Real data mode</h2>
+
+      <div class="row" style="margin-top:10px;">
+        <div>
+          <h3 style="margin:0 0 10px; font-size:14px;">1) Seed / update baseline scenario</h3>
+          <form method="post" action="/seed_custom" id="seedForm">
+            <div class="row">
+              <div>
+                <label>Scenario name (optional)</label>
+                <input name="name" placeholder="e.g., prod-playback-baseline" />
+              </div>
+              <div>
+                <label>Tags (comma separated)</label>
+                <input name="tags" placeholder="baseline, prod, playback" />
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label>Base URL</label>
+                <input name="base_url" value="{{ default_base_url }}" placeholder="https://api.example.com" />
+              </div>
+              <div>
+                <label>Endpoint path</label>
+                <input name="endpoint" value="{{ default_endpoint }}" placeholder="/play" />
+              </div>
+            </div>
+
+            <details style="margin-top:10px;">
+              <summary>Advanced (headers, params, paste JSON)</summary>
+              <div style="margin-top:10px;">
+                <label>Query params JSON (optional)</label>
+                <textarea name="params_json" class="json" placeholder='{"v": 1}'></textarea>
+                <div class="help">Example: <code>{"v": 1, "device": "tv"}</code></div>
+              </div>
+              <div style="margin-top:10px;">
+                <label>Headers JSON (optional; not stored)</label>
+                <textarea name="headers_json" class="json" placeholder='{"Authorization": "Bearer ..."}'></textarea>
+                <div class="help">Not stored on disk. Avoid long-lived tokens.</div>
+              </div>
+              <div style="margin-top:10px;">
+                <label>Baseline JSON (optional override)</label>
+                <textarea name="baseline_json" class="json" placeholder='{"example": "paste full baseline JSON here"}'></textarea>
+                <div class="help">Leave empty to fetch live from the endpoint.</div>
+              </div>
+              <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn" type="button" onclick="prettifyAll()">Prettify JSON fields</button>
+                <button class="btn" type="button" onclick="clearSeedAdvanced()">Clear advanced fields</button>
+              </div>
+            </details>
+
+            <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn primary" type="submit">Save baseline scenario</button>
+              <button class="btn" type="button" onclick="fillSeedExample()">Fill example</button>
+            </div>
+          </form>
+        </div>
+
+        <div>
+          <h3 style="margin:0 0 10px; font-size:14px;">2) Run validation using a stored baseline</h3>
+          {% if scenarios|length == 0 %}
+            <div class="alert" style="background: rgba(0,0,0,.14);">
+              <div class="small">No scenarios yet. Seed a baseline on the left (or use demo mode).</div>
+            </div>
+          {% else %}
+            <form method="post" action="/run_custom" id="runForm">
+              <label>Scenario</label>
+              <select name="scenario_id">
+                {% for s in scenarios %}
+                  <option value="{{ s.scenario_id }}">
+                    {{ (s.name if s.name else s.endpoint) }} — {{ s.base_url }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="help">Leave overrides blank to use the scenario’s stored base URL + endpoint.</div>
+
+              <div class="row" style="margin-top:10px;">
+                <div>
+                  <label>Candidate base URL (optional override)</label>
+                  <input name="candidate_base_url" placeholder="https://api.example.com" />
+                </div>
+                <div>
+                  <label>Candidate endpoint path (optional override)</label>
+                  <input name="candidate_endpoint" placeholder="/play" />
+                </div>
+              </div>
+
+              <details style="margin-top:10px;">
+                <summary>Advanced (headers, params, paste JSON)</summary>
+                <div style="margin-top:10px;">
+                  <label>Candidate query params JSON (optional)</label>
+                  <textarea name="candidate_params_json" class="json" placeholder='{"v": 2}'></textarea>
+                </div>
+                <div style="margin-top:10px;">
+                  <label>Headers JSON (optional; not stored)</label>
+                  <textarea name="headers_json" class="json" placeholder='{"Authorization": "Bearer ..."}'></textarea>
+                  <p class="muted" style="font-size:11px; margin:4px 0 0 0;">Not stored on disk. Avoid long-lived tokens.</p>
+                </div>
+                <div style="margin-top:10px;">
+                  <label>Candidate JSON (optional override)</label>
+                  <textarea name="candidate_json" class="json" placeholder='{"example": "paste full candidate JSON here"}'></textarea>
+                  <p class="muted" style="font-size:11px; margin:4px 0 0 0;">Leave empty to fetch live from the endpoint. <b>If provided, no network call is made.</b></p>
+                </div>
+                <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+                  <button class="btn" type="button" onclick="prettifyAll()">Prettify JSON fields</button>
+                  <button class="btn" type="button" onclick="clearRunAdvanced()">Clear advanced fields</button>
+                </div>
+              </details>
+
+              <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn primary" type="submit">Run validation</button>
+                <button class="btn" type="button" onclick="fillRunExample()">Fill example</button>
+              </div>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  <div class="card">
+    <h2>Scenario Repository</h2>
+    {% if scenarios|length == 0 %}
+      <p class="muted">No scenarios yet. Click "Seed baseline scenario".</p>
+    {% else %}
+      <table>
+        <thead><tr><th>Scenario ID</th><th>Name</th><th>Base URL</th><th>Endpoint</th><th>Tags</th><th>Updated</th></tr></thead>
+        <tbody>
+          {% for s in scenarios %}
+            <tr>
+              <td><code>{{ s.scenario_id }}</code></td>
+              <td>{{ s.name }}</td>
+              <td><code>{{ s.base_url }}</code></td>
+              <td><code>{{ s.endpoint }}</code></td>
+              <td>{{ ", ".join(s.tags) }}</td>
+              <td class="muted">{{ s.updated_at_human }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Recent Runs</h2>
+    {% if runs|length == 0 %}
+      <p class="muted">No runs yet. Click "Run validation".</p>
+    {% else %}
+      <table>
+        <thead><tr><th>Run ID</th><th>Endpoint</th><th>Candidate</th><th>Risk</th><th>Decision</th><th>Report</th><th>Time</th></tr></thead>
+        <tbody>
+          {% for r in runs %}
+            <tr>
+              <td><code>{{ r.run_id }}</code></td>
+              <td><code>{{ r.endpoint }}</code></td>
+              <td class="muted">
+                {% if r.candidate_url %}<code>{{ r.candidate_url }}</code>{% else %}v{{ r.candidate_version }}{% endif %}
+              </td>
+              <td>{{ r.risk_score }}</td>
+              <td><span class="badge">{{ r.action }}</span></td>
+              <td><a href="/runs/{{ r.run_id }}/report">Open report</a></td>
+              <td class="muted">{{ r.created_at_human }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <script>
+    function tryParseJson(text){
+      const t = (text || "").trim();
+      if (!t) return null;
+      return JSON.parse(t);
+    }
+
+    function prettifyTextarea(el){
+      try{
+        const obj = tryParseJson(el.value);
+        if (obj === null) return true;
+        el.value = JSON.stringify(obj, null, 2);
+        el.style.borderColor = "rgba(110,231,168,.45)";
+        return true;
+      }catch(e){
+        el.style.borderColor = "rgba(255,122,122,.55)";
+        return false;
+      }
+    }
+
+    function prettifyAll(){
+      document.querySelectorAll("textarea.json").forEach(prettifyTextarea);
+    }
+
+    function fillSeedExample(){
+      const f = document.getElementById("seedForm");
+      if (!f) return;
+      f.base_url.value = "{{ default_base_url }}";
+      f.endpoint.value = "{{ default_endpoint }}";
+      f.tags.value = "baseline, real";
+      f.params_json.value = '{"v": 1}';
+      f.headers_json.value = '{"Authorization": "Bearer <token>"}';
+      prettifyAll();
+    }
+
+    function fillRunExample(){
+      const f = document.getElementById("runForm");
+      if (!f) return;
+      f.candidate_params_json.value = '{"v": 2}';
+      f.headers_json.value = '{"Authorization": "Bearer <token>"}';
+      prettifyAll();
+    }
+
+    function clearSeedAdvanced(){
+      const f = document.getElementById("seedForm");
+      if (!f) return;
+      f.params_json.value = "";
+      f.headers_json.value = "";
+      f.baseline_json.value = "";
+      prettifyAll();
+    }
+
+    function clearRunAdvanced(){
+      const f = document.getElementById("runForm");
+      if (!f) return;
+      f.candidate_params_json.value = "";
+      f.headers_json.value = "";
+      f.candidate_json.value = "";
+      prettifyAll();
+    }
+
+    // live validate on blur
+    document.querySelectorAll("textarea.json").forEach((el)=>{
+      el.addEventListener("blur", ()=>prettifyTextarea(el));
+    });
+  </script>
+  </div>
+</body>
+</html>
