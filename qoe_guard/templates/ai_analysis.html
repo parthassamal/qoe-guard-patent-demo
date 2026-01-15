@@ -1,972 +1,785 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Analysis | QoE-Guard Enterprise</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #0a0e14;
-            --bg-secondary: #111820;
-            --bg-tertiary: #1a2332;
-            --accent-primary: #00ff9f;
-            --accent-secondary: #00d4ff;
-            --accent-warning: #ffb800;
-            --accent-danger: #ff4757;
-            --accent-purple: #a855f7;
-            --text-primary: #e8ecf0;
-            --text-secondary: #8b9ab4;
-            --text-muted: #5a6b82;
-            --border-color: #2a3544;
-            --glow-primary: rgba(0, 255, 159, 0.3);
-            --glow-secondary: rgba(0, 212, 255, 0.3);
+{% extends "base.html" %}
+
+{% block title %}AI Analysis - QoE-Guard Enterprise{% endblock %}
+
+{% block head %}
+<style>
+    /* AI Analysis specific styles */
+    .ai-hero {
+        text-align: center;
+        padding: 20px 0 40px;
+    }
+    
+    .ai-hero h1 {
+        font-size: 32px;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--accent-primary), #818cf8, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 12px;
+    }
+    
+    .ai-hero p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        max-width: 600px;
+        margin: 0 auto 24px;
+    }
+    
+    .ai-status {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: var(--bg-tertiary);
+        border-radius: 100px;
+        border: 1px solid var(--border-color);
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+    
+    .status-badge.active {
+        border-color: var(--accent-success);
+        color: var(--text-primary);
+    }
+    
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--text-muted);
+    }
+    
+    .status-badge.active .status-dot {
+        background: var(--accent-success);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    }
+    
+    /* Analysis Cards */
+    .analysis-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+    }
+    
+    .analysis-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .analysis-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .analysis-card.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .card-header-ai {
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(99, 102, 241, 0.03);
+    }
+    
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+    
+    .card-icon.llm { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .card-icon.semantic { background: linear-gradient(135deg, #06b6d4, #0ea5e9); }
+    .card-icon.anomaly { background: linear-gradient(135deg, #f97316, #ef4444); }
+    .card-icon.nlp { background: linear-gradient(135deg, #22c55e, #10b981); }
+    .card-icon.ml { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+    
+    .card-title-group h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .card-title-group p {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+    
+    .card-body-ai {
+        padding: 24px;
+    }
+    
+    /* Provider Selector */
+    .provider-selector {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .provider-btn {
+        flex: 1;
+        padding: 10px 16px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .provider-btn:hover {
+        border-color: var(--accent-primary);
+        color: var(--text-primary);
+    }
+    
+    .provider-btn.active {
+        background: rgba(99, 102, 241, 0.15);
+        border-color: var(--accent-primary);
+        color: var(--accent-secondary);
+    }
+    
+    /* Results Area */
+    .results-area {
+        margin-top: 20px;
+        padding: 16px;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+        min-height: 120px;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .results-area pre {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        color: var(--text-secondary);
+    }
+    
+    .results-area.success {
+        border-color: var(--accent-success);
+    }
+    
+    .results-area.error {
+        border-color: var(--accent-danger);
+    }
+    
+    /* Feature Tags */
+    .feature-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .feature-tag {
+        padding: 4px 10px;
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 100px;
+        font-size: 11px;
+        color: var(--accent-secondary);
+    }
+    
+    /* SHAP Visualization */
+    .shap-viz {
+        margin-top: 20px;
+    }
+    
+    .shap-viz h4 {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--text-secondary);
+    }
+    
+    .shap-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        gap: 12px;
+    }
+    
+    .shap-label {
+        width: 140px;
+        font-size: 12px;
+        font-family: var(--font-mono);
+        color: var(--text-secondary);
+        text-align: right;
+    }
+    
+    .shap-bar-container {
+        flex: 1;
+        height: 18px;
+        background: var(--bg-primary);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .shap-bar-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.5s ease-out;
+    }
+    
+    .shap-bar-fill.positive {
+        background: linear-gradient(90deg, var(--accent-danger), #ff6b6b);
+    }
+    
+    .shap-bar-fill.negative {
+        background: linear-gradient(90deg, var(--accent-success), #10b981);
+    }
+    
+    .shap-value {
+        width: 60px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+    
+    /* Range Slider */
+    input[type="range"] {
+        width: 100%;
+        height: 6px;
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+        outline: none;
+        -webkit-appearance: none;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--accent-primary);
+        border-radius: 50%;
+        cursor: pointer;
+    }
+    
+    /* ML Section Two Column */
+    .ml-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    @media (max-width: 900px) {
+        .ml-grid {
+            grid-template-columns: 1fr;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        /* Navigation */
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: var(--accent-primary);
-        }
-
-        /* Hero Section */
-        .hero {
-            padding: 3rem 2rem;
-            text-align: center;
-            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-        }
-
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 1rem;
-        }
-
-        .hero p {
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            max-width: 700px;
-            margin: 0 auto 2rem;
-        }
-
-        /* AI Status Badges */
-        .ai-status {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: var(--bg-tertiary);
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            font-size: 0.85rem;
-        }
-
-        .status-badge.active {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 10px var(--glow-primary);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--text-muted);
-        }
-
-        .status-badge.active .status-dot {
-            background: var(--accent-primary);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Main Content */
-        .main-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Analysis Cards Grid */
-        .analysis-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .analysis-card {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .analysis-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header {
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .card-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .card-icon.llm {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        }
-
-        .card-icon.semantic {
-            background: linear-gradient(135deg, #06b6d4, #0ea5e9);
-        }
-
-        .card-icon.anomaly {
-            background: linear-gradient(135deg, #f97316, #ef4444);
-        }
-
-        .card-icon.nlp {
-            background: linear-gradient(135deg, #22c55e, #10b981);
-        }
-
-        .card-icon.ml {
-            background: linear-gradient(135deg, #ec4899, #f43f5e);
-        }
-
-        .card-title {
-            flex: 1;
-        }
-
-        .card-title h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .card-title p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        textarea, input[type="text"], select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        textarea:focus, input:focus, select:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px var(--glow-primary);
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Outfit', sans-serif;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: var(--bg-primary);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px var(--glow-primary);
-        }
-
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--accent-secondary);
-        }
-
-        /* Results Area */
-        .results-area {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            min-height: 150px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .results-area pre {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .results-area.success {
-            border-color: var(--accent-primary);
-        }
-
-        .results-area.error {
-            border-color: var(--accent-danger);
-        }
-
-        /* Provider Selector */
-        .provider-selector {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .provider-btn {
-            flex: 1;
-            padding: 0.75rem;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .provider-btn:hover {
-            border-color: var(--accent-secondary);
-        }
-
-        .provider-btn.active {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
-            border-color: var(--accent-purple);
-            color: var(--text-primary);
-        }
-
-        .provider-btn img {
-            width: 20px;
-            height: 20px;
-            margin-right: 0.5rem;
-            vertical-align: middle;
-        }
-
-        /* Feature Tags */
-        .feature-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .feature-tag {
-            padding: 0.25rem 0.75rem;
-            background: rgba(0, 255, 159, 0.1);
-            border: 1px solid var(--accent-primary);
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: var(--accent-primary);
-        }
-
-        /* Loading Spinner */
-        .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-top-color: var(--accent-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading .spinner {
-            display: inline-block;
-        }
-
-        /* SHAP Visualization */
-        .shap-viz {
-            margin-top: 1rem;
-        }
-
-        .shap-bar {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .shap-label {
-            width: 150px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .shap-bar-container {
-            flex: 1;
-            height: 20px;
-            background: var(--bg-primary);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .shap-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease-out;
-        }
-
-        .shap-bar-fill.positive {
-            background: linear-gradient(90deg, var(--accent-danger), #ff6b6b);
-        }
-
-        .shap-bar-fill.negative {
-            background: linear-gradient(90deg, var(--accent-primary), #00d4aa);
-        }
-
-        .shap-value {
-            width: 60px;
-            text-align: right;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .analysis-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .hero h1 {
-                font-size: 2rem;
-            }
-            
-            .nav-links {
-                display: none;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav>
-        <div class="logo">
-            <div class="logo-icon">⚡</div>
-            <span>QoE-Guard</span>
-        </div>
-        <div class="nav-links">
-            <a href="/dashboard">Dashboard</a>
-            <a href="/inventory">Inventory</a>
-            <a href="/validate">Validate</a>
-            <a href="/ai-analysis" class="active">AI Analysis</a>
-            <a href="/governance">Governance</a>
-            <a href="/docs">API Docs</a>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <h1>🧠 AI-Powered Analysis</h1>
-        <p>Leverage cutting-edge AI/ML to analyze API changes, detect semantic drift, identify anomalies, and get intelligent recommendations.</p>
         
-        <div class="ai-status" id="aiStatus">
-            <div class="status-badge" id="status-groq">
-                <span class="status-dot"></span>
-                <span>Groq (Llama)</span>
-            </div>
-            <div class="status-badge" id="status-openai">
-                <span class="status-dot"></span>
-                <span>OpenAI (GPT-4)</span>
-            </div>
-            <div class="status-badge" id="status-anthropic">
-                <span class="status-dot"></span>
-                <span>Anthropic (Claude)</span>
-            </div>
-            <div class="status-badge" id="status-semantic">
-                <span class="status-dot"></span>
-                <span>Semantic Search</span>
-            </div>
-            <div class="status-badge" id="status-ml">
-                <span class="status-dot"></span>
-                <span>ML Scoring</span>
+        .analysis-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="ai-hero">
+    <h1>🧠 AI-Powered Analysis</h1>
+    <p>Leverage cutting-edge AI/ML to analyze API changes, detect semantic drift, identify anomalies, and get intelligent recommendations.</p>
+    
+    <div class="ai-status" id="aiStatus">
+        <div class="status-badge" id="status-groq">
+            <span class="status-dot"></span>
+            <span>Groq (Llama)</span>
+        </div>
+        <div class="status-badge" id="status-openai">
+            <span class="status-dot"></span>
+            <span>OpenAI (GPT-4)</span>
+        </div>
+        <div class="status-badge" id="status-anthropic">
+            <span class="status-dot"></span>
+            <span>Anthropic (Claude)</span>
+        </div>
+        <div class="status-badge" id="status-semantic">
+            <span class="status-dot"></span>
+            <span>Semantic Search</span>
+        </div>
+        <div class="status-badge" id="status-ml">
+            <span class="status-dot"></span>
+            <span>ML Scoring</span>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Cards Grid -->
+<div class="analysis-grid">
+    <!-- LLM Diff Analysis -->
+    <div class="analysis-card">
+        <div class="card-header-ai">
+            <div class="card-icon llm">🤖</div>
+            <div class="card-title-group">
+                <h3>LLM Diff Analysis</h3>
+                <p>Intelligent diff analysis with natural language explanations</p>
             </div>
         </div>
-    </section>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="analysis-grid">
-            <!-- LLM Diff Analysis -->
-            <div class="analysis-card">
-                <div class="card-header">
-                    <div class="card-icon llm">🤖</div>
-                    <div class="card-title">
-                        <h3>LLM Diff Analysis</h3>
-                        <p>Intelligent diff analysis with natural language explanations</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="provider-selector">
-                        <button class="provider-btn active" data-provider="groq">⚡ Groq</button>
-                        <button class="provider-btn" data-provider="openai">🔮 OpenAI</button>
-                        <button class="provider-btn" data-provider="anthropic">🎭 Claude</button>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Baseline JSON</label>
-                        <textarea id="llm-baseline" placeholder='{"playback": {"url": "https://cdn.example.com/stream.m3u8", "quality": "HD"}}'></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Candidate JSON</label>
-                        <textarea id="llm-candidate" placeholder='{"playback": {"url": "https://cdn-new.example.com/stream.m3u8", "quality": "4K", "ads": true}}'></textarea>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="analyzeDiff()">
-                        <span class="spinner"></span>
-                        Analyze with AI
-                    </button>
-                    
-                    <div class="results-area" id="llm-results">
-                        <pre>Results will appear here...</pre>
-                    </div>
-                    
-                    <div class="feature-tags">
-                        <span class="feature-tag">Breaking Change Detection</span>
-                        <span class="feature-tag">Impact Prediction</span>
-                        <span class="feature-tag">Recommendations</span>
-                    </div>
-                </div>
+        <div class="card-body-ai">
+            <div class="provider-selector">
+                <button class="provider-btn active" data-provider="groq">⚡ Groq</button>
+                <button class="provider-btn" data-provider="openai">🔮 OpenAI</button>
+                <button class="provider-btn" data-provider="anthropic">🎭 Claude</button>
             </div>
-
-            <!-- Semantic Drift Detection -->
-            <div class="analysis-card">
-                <div class="card-header">
-                    <div class="card-icon semantic">🔍</div>
-                    <div class="card-title">
-                        <h3>Semantic Drift Detection</h3>
-                        <p>Detect field renames and semantic equivalences using embeddings</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Baseline JSON</label>
-                        <textarea id="semantic-baseline" placeholder='{"playback_url": "https://example.com", "quality_level": "HD"}'></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Candidate JSON</label>
-                        <textarea id="semantic-candidate" placeholder='{"manifest_url": "https://example.com", "resolution": "1080p"}'></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Similarity Threshold</label>
-                        <input type="range" id="similarity-threshold" min="0.5" max="0.95" step="0.05" value="0.75">
-                        <span id="threshold-value">0.75</span>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="detectSemanticDrift()">
-                        <span class="spinner"></span>
-                        Detect Drift
-                    </button>
-                    
-                    <div class="results-area" id="semantic-results">
-                        <pre>Results will appear here...</pre>
-                    </div>
-                    
-                    <div class="feature-tags">
-                        <span class="feature-tag">Field Renames</span>
-                        <span class="feature-tag">Value Equivalence</span>
-                        <span class="feature-tag">Embedding Similarity</span>
-                    </div>
-                </div>
+            
+            <div class="form-group">
+                <label class="form-label">Baseline JSON</label>
+                <textarea class="form-textarea" id="llm-baseline" placeholder='{"playback": {"url": "https://cdn.example.com/stream.m3u8", "quality": "HD"}}'></textarea>
             </div>
-
-            <!-- Anomaly Detection -->
-            <div class="analysis-card">
-                <div class="card-header">
-                    <div class="card-icon anomaly">📊</div>
-                    <div class="card-title">
-                        <h3>Anomaly Detection</h3>
-                        <p>ML-powered detection of unusual runtime patterns</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Algorithm</label>
-                        <select id="anomaly-algorithm">
-                            <option value="isolation_forest">Isolation Forest</option>
-                            <option value="one_class_svm">One-Class SVM</option>
-                            <option value="lof">Local Outlier Factor</option>
-                            <option value="statistical">Statistical (Z-Score)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Runtime Metrics (JSON array)</label>
-                        <textarea id="anomaly-metrics" placeholder='[
-  {"latency_ms": 150, "status_code": 200, "timestamp": "2025-01-15T10:00:00", "endpoint": "/api/playback"},
-  {"latency_ms": 5200, "status_code": 500, "timestamp": "2025-01-15T10:01:00", "endpoint": "/api/playback"}
-]'></textarea>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="detectAnomalies()">
-                        <span class="spinner"></span>
-                        Detect Anomalies
-                    </button>
-                    
-                    <div class="results-area" id="anomaly-results">
-                        <pre>Results will appear here...</pre>
-                    </div>
-                    
-                    <div class="feature-tags">
-                        <span class="feature-tag">Latency Spikes</span>
-                        <span class="feature-tag">Error Bursts</span>
-                        <span class="feature-tag">Pattern Detection</span>
-                    </div>
-                </div>
+            
+            <div class="form-group">
+                <label class="form-label">Candidate JSON</label>
+                <textarea class="form-textarea" id="llm-candidate" placeholder='{"playback": {"url": "https://cdn-new.example.com/stream.m3u8", "quality": "4K", "ads": true}}'></textarea>
             </div>
-
-            <!-- Endpoint Classification -->
-            <div class="analysis-card">
-                <div class="card-header">
-                    <div class="card-icon nlp">📝</div>
-                    <div class="card-title">
-                        <h3>NLP Endpoint Classification</h3>
-                        <p>Auto-classify endpoints by intent and criticality</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Endpoint Path</label>
-                        <input type="text" id="nlp-path" placeholder="/api/v1/playback/manifest/{contentId}">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>HTTP Method</label>
-                        <select id="nlp-method">
-                            <option value="GET">GET</option>
-                            <option value="POST">POST</option>
-                            <option value="PUT">PUT</option>
-                            <option value="DELETE">DELETE</option>
-                            <option value="PATCH">PATCH</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Description (optional)</label>
-                        <textarea id="nlp-description" placeholder="Retrieves the playback manifest URL for the specified content, including DRM license information and quality settings."></textarea>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick="classifyEndpoint()">
-                        <span class="spinner"></span>
-                        Classify
-                    </button>
-                    
-                    <div class="results-area" id="nlp-results">
-                        <pre>Results will appear here...</pre>
-                    </div>
-                    
-                    <div class="feature-tags">
-                        <span class="feature-tag">Intent Detection</span>
-                        <span class="feature-tag">Criticality Scoring</span>
-                        <span class="feature-tag">Tag Suggestions</span>
-                    </div>
-                </div>
+            
+            <button class="btn btn-primary" onclick="analyzeDiff()">
+                Analyze with AI
+            </button>
+            
+            <div class="results-area" id="llm-results">
+                <pre>Results will appear here...</pre>
             </div>
-
-            <!-- ML Risk Scoring -->
-            <div class="analysis-card" style="grid-column: span 2;">
-                <div class="card-header">
-                    <div class="card-icon ml">🎯</div>
-                    <div class="card-title">
-                        <h3>Explainable ML Risk Scoring</h3>
-                        <p>Get risk predictions with SHAP explanations showing feature contributions</p>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                        <div>
-                            <div class="form-group">
-                                <label>Changes JSON (list of detected changes)</label>
-                                <textarea id="ml-changes" style="min-height: 200px;" placeholder='[
-  {"change_type": "removed", "path": "$.playback.drmUrl"},
-  {"change_type": "type_changed", "path": "$.quality", "old_value": "string", "new_value": "number"},
-  {"change_type": "value_changed", "path": "$.maxBitrate", "old_value": 8000, "new_value": 4000}
-]'></textarea>
-                            </div>
-                            
-                            <button class="btn btn-primary" onclick="mlScore()">
-                                <span class="spinner"></span>
-                                Calculate Risk Score
-                            </button>
-                        </div>
-                        
-                        <div>
-                            <div class="results-area" id="ml-results" style="min-height: 200px;">
-                                <pre>Results will appear here...</pre>
-                            </div>
-                            
-                            <div class="shap-viz" id="shap-viz" style="display: none;">
-                                <h4 style="margin-bottom: 1rem; font-size: 0.9rem;">Feature Contributions</h4>
-                                <!-- SHAP bars will be rendered here -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="feature-tags" style="margin-top: 1rem;">
-                        <span class="feature-tag">XGBoost/LightGBM</span>
-                        <span class="feature-tag">SHAP Explanations</span>
-                        <span class="feature-tag">Adaptive Learning</span>
-                        <span class="feature-tag">CI/CD Integration</span>
-                    </div>
-                </div>
+            
+            <div class="feature-tags">
+                <span class="feature-tag">Breaking Change Detection</span>
+                <span class="feature-tag">Impact Prediction</span>
+                <span class="feature-tag">Recommendations</span>
             </div>
         </div>
     </div>
 
-    <script>
-        // Check AI status on load
-        async function checkAIStatus() {
-            try {
-                const response = await fetch('/ai/status');
-                const status = await response.json();
+    <!-- Semantic Drift Detection -->
+    <div class="analysis-card">
+        <div class="card-header-ai">
+            <div class="card-icon semantic">🔍</div>
+            <div class="card-title-group">
+                <h3>Semantic Drift Detection</h3>
+                <p>Detect field renames and semantic equivalences using embeddings</p>
+            </div>
+        </div>
+        <div class="card-body-ai">
+            <div class="form-group">
+                <label class="form-label">Baseline JSON</label>
+                <textarea class="form-textarea" id="semantic-baseline" placeholder='{"playback_url": "https://example.com", "quality_level": "HD"}'></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Candidate JSON</label>
+                <textarea class="form-textarea" id="semantic-candidate" placeholder='{"manifest_url": "https://example.com", "resolution": "1080p"}'></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Similarity Threshold: <span id="threshold-value">0.75</span></label>
+                <input type="range" id="similarity-threshold" min="0.5" max="0.95" step="0.05" value="0.75">
+            </div>
+            
+            <button class="btn btn-primary" onclick="detectSemanticDrift()">
+                Detect Drift
+            </button>
+            
+            <div class="results-area" id="semantic-results">
+                <pre>Results will appear here...</pre>
+            </div>
+            
+            <div class="feature-tags">
+                <span class="feature-tag">Field Renames</span>
+                <span class="feature-tag">Value Equivalence</span>
+                <span class="feature-tag">Embedding Similarity</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomaly Detection -->
+    <div class="analysis-card">
+        <div class="card-header-ai">
+            <div class="card-icon anomaly">📊</div>
+            <div class="card-title-group">
+                <h3>Anomaly Detection</h3>
+                <p>ML-powered detection of unusual runtime patterns</p>
+            </div>
+        </div>
+        <div class="card-body-ai">
+            <div class="form-group">
+                <label class="form-label">Algorithm</label>
+                <select class="form-select" id="anomaly-algorithm">
+                    <option value="isolation_forest">Isolation Forest</option>
+                    <option value="one_class_svm">One-Class SVM</option>
+                    <option value="lof">Local Outlier Factor</option>
+                    <option value="statistical">Statistical (Z-Score)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Runtime Metrics (JSON array)</label>
+                <textarea class="form-textarea" id="anomaly-metrics" placeholder='[
+  {"latency_ms": 150, "status_code": 200, "timestamp": "2025-01-15T10:00:00", "endpoint": "/api/playback"},
+  {"latency_ms": 5200, "status_code": 500, "timestamp": "2025-01-15T10:01:00", "endpoint": "/api/playback"}
+]'></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="detectAnomalies()">
+                Detect Anomalies
+            </button>
+            
+            <div class="results-area" id="anomaly-results">
+                <pre>Results will appear here...</pre>
+            </div>
+            
+            <div class="feature-tags">
+                <span class="feature-tag">Latency Spikes</span>
+                <span class="feature-tag">Error Bursts</span>
+                <span class="feature-tag">Pattern Detection</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Endpoint Classification -->
+    <div class="analysis-card">
+        <div class="card-header-ai">
+            <div class="card-icon nlp">📝</div>
+            <div class="card-title-group">
+                <h3>NLP Endpoint Classification</h3>
+                <p>Auto-classify endpoints by intent and criticality</p>
+            </div>
+        </div>
+        <div class="card-body-ai">
+            <div class="form-group">
+                <label class="form-label">Endpoint Path</label>
+                <input type="text" class="form-input" id="nlp-path" placeholder="/api/v1/playback/manifest/{contentId}">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">HTTP Method</label>
+                <select class="form-select" id="nlp-method">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description (optional)</label>
+                <textarea class="form-textarea" id="nlp-description" placeholder="Retrieves the playback manifest URL for the specified content, including DRM license information and quality settings." style="min-height: 80px;"></textarea>
+            </div>
+            
+            <button class="btn btn-primary" onclick="classifyEndpoint()">
+                Classify
+            </button>
+            
+            <div class="results-area" id="nlp-results">
+                <pre>Results will appear here...</pre>
+            </div>
+            
+            <div class="feature-tags">
+                <span class="feature-tag">Intent Detection</span>
+                <span class="feature-tag">Criticality Scoring</span>
+                <span class="feature-tag">Tag Suggestions</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ML Risk Scoring (Full Width) -->
+    <div class="analysis-card full-width">
+        <div class="card-header-ai">
+            <div class="card-icon ml">🎯</div>
+            <div class="card-title-group">
+                <h3>Explainable ML Risk Scoring</h3>
+                <p>Get risk predictions with SHAP explanations showing feature contributions</p>
+            </div>
+        </div>
+        <div class="card-body-ai">
+            <div class="ml-grid">
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Changes JSON (list of detected changes)</label>
+                        <textarea class="form-textarea" id="ml-changes" style="min-height: 180px;" placeholder='[
+  {"change_type": "removed", "path": "$.playback.drmUrl"},
+  {"change_type": "type_changed", "path": "$.quality", "old_value": "string", "new_value": "number"},
+  {"change_type": "value_changed", "path": "$.maxBitrate", "old_value": 8000, "new_value": 4000}
+]'></textarea>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="mlScore()">
+                        Calculate Risk Score
+                    </button>
+                </div>
                 
-                if (status.llm_available) {
-                    document.getElementById('status-' + (status.llm_provider || 'groq')).classList.add('active');
-                }
-                if (status.semantic_drift_available) {
-                    document.getElementById('status-semantic').classList.add('active');
-                }
-                if (status.ml_scoring_available) {
-                    document.getElementById('status-ml').classList.add('active');
-                }
-            } catch (e) {
-                console.log('AI status check failed:', e);
+                <div>
+                    <div class="results-area" id="ml-results" style="min-height: 180px;">
+                        <pre>Results will appear here...</pre>
+                    </div>
+                    
+                    <div class="shap-viz" id="shap-viz" style="display: none;">
+                        <!-- SHAP bars will be rendered here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-tags">
+                <span class="feature-tag">XGBoost/LightGBM</span>
+                <span class="feature-tag">SHAP Explanations</span>
+                <span class="feature-tag">Adaptive Learning</span>
+                <span class="feature-tag">CI/CD Integration</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Check AI status on load
+    async function checkAIStatus() {
+        try {
+            const response = await fetch('/ai/status');
+            const status = await response.json();
+            
+            if (status.llm_available) {
+                const provider = status.llm_provider || 'groq';
+                document.getElementById('status-' + provider).classList.add('active');
             }
+            if (status.semantic_drift_available) {
+                document.getElementById('status-semantic').classList.add('active');
+            }
+            if (status.ml_scoring_available) {
+                document.getElementById('status-ml').classList.add('active');
+            }
+        } catch (e) {
+            console.log('AI status check failed:', e);
+        }
+    }
+    
+    checkAIStatus();
+
+    // Provider selector
+    document.querySelectorAll('.provider-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.parentElement.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Threshold slider
+    document.getElementById('similarity-threshold').addEventListener('input', function() {
+        document.getElementById('threshold-value').textContent = this.value;
+    });
+
+    // Helper to show results
+    function showResults(elementId, data, isError = false) {
+        const el = document.getElementById(elementId);
+        el.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        el.classList.remove('success', 'error');
+        el.classList.add(isError ? 'error' : 'success');
+    }
+
+    // LLM Diff Analysis
+    async function analyzeDiff() {
+        const activeProvider = document.querySelector('.provider-btn.active').dataset.provider;
+        const baseline = document.getElementById('llm-baseline').value;
+        const candidate = document.getElementById('llm-candidate').value;
+        
+        try {
+            const response = await fetch('/ai/analyze-diff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    baseline: JSON.parse(baseline || '{}'),
+                    candidate: JSON.parse(candidate || '{}'),
+                    llm_provider: activeProvider
+                })
+            });
+            
+            const data = await response.json();
+            showResults('llm-results', data, !response.ok);
+        } catch (e) {
+            showResults('llm-results', { error: e.message }, true);
+        }
+    }
+
+    // Semantic Drift Detection
+    async function detectSemanticDrift() {
+        const baseline = document.getElementById('semantic-baseline').value;
+        const candidate = document.getElementById('semantic-candidate').value;
+        const threshold = parseFloat(document.getElementById('similarity-threshold').value);
+        
+        try {
+            const response = await fetch('/ai/semantic-drift', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    baseline: JSON.parse(baseline || '{}'),
+                    candidate: JSON.parse(candidate || '{}'),
+                    similarity_threshold: threshold
+                })
+            });
+            
+            const data = await response.json();
+            showResults('semantic-results', data, !response.ok);
+        } catch (e) {
+            showResults('semantic-results', { error: e.message }, true);
+        }
+    }
+
+    // Anomaly Detection
+    async function detectAnomalies() {
+        const algorithm = document.getElementById('anomaly-algorithm').value;
+        const metrics = document.getElementById('anomaly-metrics').value;
+        
+        try {
+            const response = await fetch('/ai/detect-anomalies', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    algorithm: algorithm,
+                    metrics: JSON.parse(metrics || '[]')
+                })
+            });
+            
+            const data = await response.json();
+            showResults('anomaly-results', data, !response.ok);
+        } catch (e) {
+            showResults('anomaly-results', { error: e.message }, true);
+        }
+    }
+
+    // NLP Classification
+    async function classifyEndpoint() {
+        const path = document.getElementById('nlp-path').value;
+        const method = document.getElementById('nlp-method').value;
+        const description = document.getElementById('nlp-description').value;
+        
+        try {
+            const response = await fetch('/ai/classify-endpoint', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    endpoint_path: path,
+                    method: method,
+                    description: description || null
+                })
+            });
+            
+            const data = await response.json();
+            showResults('nlp-results', data, !response.ok);
+        } catch (e) {
+            showResults('nlp-results', { error: e.message }, true);
+        }
+    }
+
+    // ML Risk Scoring
+    async function mlScore() {
+        const changes = document.getElementById('ml-changes').value;
+        
+        try {
+            const response = await fetch('/ai/ml-score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    changes: JSON.parse(changes || '[]')
+                })
+            });
+            
+            const data = await response.json();
+            showResults('ml-results', data, !response.ok);
+            
+            // Render SHAP visualization if available
+            if (data.shap_explanation && data.shap_explanation.shap_values) {
+                renderShapViz(data.shap_explanation);
+            } else if (data.top_contributors) {
+                renderContributors(data.top_contributors);
+            }
+        } catch (e) {
+            showResults('ml-results', { error: e.message }, true);
+        }
+    }
+
+    function renderShapViz(shap) {
+        const container = document.getElementById('shap-viz');
+        container.style.display = 'block';
+        
+        const values = Object.entries(shap.shap_values)
+            .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+            .slice(0, 8);
+        
+        const maxVal = Math.max(...values.map(v => Math.abs(v[1])));
+        
+        container.innerHTML = '<h4>SHAP Feature Contributions</h4>';
+        
+        values.forEach(([name, value]) => {
+            const pct = (Math.abs(value) / maxVal) * 100;
+            const isPositive = value > 0;
+            
+            container.innerHTML += `
+                <div class="shap-bar">
+                    <span class="shap-label">${name}</span>
+                    <div class="shap-bar-container">
+                        <div class="shap-bar-fill ${isPositive ? 'positive' : 'negative'}" style="width: ${pct}%"></div>
+                    </div>
+                    <span class="shap-value">${value.toFixed(3)}</span>
+                </div>
+            `;
+        });
+    }
+
+    function renderContributors(contributors) {
+        const container = document.getElementById('shap-viz');
+        container.style.display = 'block';
+        
+        if (contributors.length === 0) {
+            container.innerHTML = '<p style="color: var(--text-muted);">No significant contributors</p>';
+            return;
         }
         
-        checkAIStatus();
-
-        // Provider selector
-        document.querySelectorAll('.provider-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.parentElement.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-
-        // Threshold slider
-        document.getElementById('similarity-threshold').addEventListener('input', function() {
-            document.getElementById('threshold-value').textContent = this.value;
-        });
-
-        // Helper to show results
-        function showResults(elementId, data, isError = false) {
-            const el = document.getElementById(elementId);
-            el.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-            el.classList.remove('success', 'error');
-            el.classList.add(isError ? 'error' : 'success');
-        }
-
-        // LLM Diff Analysis
-        async function analyzeDiff() {
-            const activeProvider = document.querySelector('.provider-btn.active').dataset.provider;
-            const baseline = document.getElementById('llm-baseline').value;
-            const candidate = document.getElementById('llm-candidate').value;
+        const maxVal = Math.max(...contributors.map(c => Math.abs(c.contribution)));
+        
+        container.innerHTML = '<h4>Feature Contributions</h4>';
+        
+        contributors.forEach(c => {
+            const pct = (Math.abs(c.contribution) / maxVal) * 100;
+            const isPositive = c.direction === '↑';
             
-            try {
-                const response = await fetch('/ai/analyze-diff', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        baseline: JSON.parse(baseline || '{}'),
-                        candidate: JSON.parse(candidate || '{}'),
-                        llm_provider: activeProvider
-                    })
-                });
-                
-                const data = await response.json();
-                showResults('llm-results', data, !response.ok);
-            } catch (e) {
-                showResults('llm-results', { error: e.message }, true);
-            }
-        }
-
-        // Semantic Drift Detection
-        async function detectSemanticDrift() {
-            const baseline = document.getElementById('semantic-baseline').value;
-            const candidate = document.getElementById('semantic-candidate').value;
-            const threshold = parseFloat(document.getElementById('similarity-threshold').value);
-            
-            try {
-                const response = await fetch('/ai/semantic-drift', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        baseline: JSON.parse(baseline || '{}'),
-                        candidate: JSON.parse(candidate || '{}'),
-                        similarity_threshold: threshold
-                    })
-                });
-                
-                const data = await response.json();
-                showResults('semantic-results', data, !response.ok);
-            } catch (e) {
-                showResults('semantic-results', { error: e.message }, true);
-            }
-        }
-
-        // Anomaly Detection
-        async function detectAnomalies() {
-            const algorithm = document.getElementById('anomaly-algorithm').value;
-            const metrics = document.getElementById('anomaly-metrics').value;
-            
-            try {
-                const response = await fetch('/ai/detect-anomalies', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        algorithm: algorithm,
-                        metrics: JSON.parse(metrics || '[]')
-                    })
-                });
-                
-                const data = await response.json();
-                showResults('anomaly-results', data, !response.ok);
-            } catch (e) {
-                showResults('anomaly-results', { error: e.message }, true);
-            }
-        }
-
-        // NLP Classification
-        async function classifyEndpoint() {
-            const path = document.getElementById('nlp-path').value;
-            const method = document.getElementById('nlp-method').value;
-            const description = document.getElementById('nlp-description').value;
-            
-            try {
-                const response = await fetch('/ai/classify-endpoint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        endpoint_path: path,
-                        method: method,
-                        description: description || null
-                    })
-                });
-                
-                const data = await response.json();
-                showResults('nlp-results', data, !response.ok);
-            } catch (e) {
-                showResults('nlp-results', { error: e.message }, true);
-            }
-        }
-
-        // ML Risk Scoring
-        async function mlScore() {
-            const changes = document.getElementById('ml-changes').value;
-            
-            try {
-                const response = await fetch('/ai/ml-score', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        changes: JSON.parse(changes || '[]')
-                    })
-                });
-                
-                const data = await response.json();
-                showResults('ml-results', data, !response.ok);
-                
-                // Render SHAP visualization if available
-                if (data.shap_explanation && data.shap_explanation.shap_values) {
-                    renderShapViz(data.shap_explanation);
-                } else if (data.top_contributors) {
-                    renderContributors(data.top_contributors);
-                }
-            } catch (e) {
-                showResults('ml-results', { error: e.message }, true);
-            }
-        }
-
-        function renderShapViz(shap) {
-            const container = document.getElementById('shap-viz');
-            container.style.display = 'block';
-            
-            const values = Object.entries(shap.shap_values)
-                .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-                .slice(0, 8);
-            
-            const maxVal = Math.max(...values.map(v => Math.abs(v[1])));
-            
-            container.innerHTML = '<h4 style="margin-bottom: 1rem; font-size: 0.9rem;">SHAP Feature Contributions</h4>';
-            
-            values.forEach(([name, value]) => {
-                const pct = (Math.abs(value) / maxVal) * 100;
-                const isPositive = value > 0;
-                
-                container.innerHTML += `
-                    <div class="shap-bar">
-                        <span class="shap-label">${name}</span>
-                        <div class="shap-bar-container">
-                            <div class="shap-bar-fill ${isPositive ? 'positive' : 'negative'}" style="width: ${pct}%"></div>
-                        </div>
-                        <span class="shap-value">${value.toFixed(3)}</span>
+            container.innerHTML += `
+                <div class="shap-bar">
+                    <span class="shap-label">${c.feature}</span>
+                    <div class="shap-bar-container">
+                        <div class="shap-bar-fill ${isPositive ? 'positive' : 'negative'}" style="width: ${pct}%"></div>
                     </div>
-                `;
-            });
-        }
-
-        function renderContributors(contributors) {
-            const container = document.getElementById('shap-viz');
-            container.style.display = 'block';
-            
-            if (contributors.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-secondary);">No significant contributors</p>';
-                return;
-            }
-            
-            const maxVal = Math.max(...contributors.map(c => Math.abs(c.contribution)));
-            
-            container.innerHTML = '<h4 style="margin-bottom: 1rem; font-size: 0.9rem;">Feature Contributions</h4>';
-            
-            contributors.forEach(c => {
-                const pct = (Math.abs(c.contribution) / maxVal) * 100;
-                const isPositive = c.direction === '↑';
-                
-                container.innerHTML += `
-                    <div class="shap-bar">
-                        <span class="shap-label">${c.feature}</span>
-                        <div class="shap-bar-container">
-                            <div class="shap-bar-fill ${isPositive ? 'positive' : 'negative'}" style="width: ${pct}%"></div>
-                        </div>
-                        <span class="shap-value">${c.direction} ${c.contribution.toFixed(3)}</span>
-                    </div>
-                `;
-            });
-        }
-    </script>
-</body>
-</html>
+                    <span class="shap-value">${c.direction} ${c.contribution.toFixed(3)}</span>
+                </div>
+            `;
+        });
+    }
+</script>
+{% endblock %}
