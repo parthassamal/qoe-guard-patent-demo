@@ -339,6 +339,15 @@ tests/
 
 ## 🔌 API Reference
 
+### Interactive Documentation
+
+When the server is running, visit:
+- **Swagger UI**: http://localhost:8010/docs — Interactive API explorer with "Try it out"
+- **ReDoc**: http://localhost:8010/redoc — Alternative documentation format
+- **OpenAPI Schema**: http://localhost:8010/openapi.json — Machine-readable schema
+
+### Endpoints
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/` | Web UI |

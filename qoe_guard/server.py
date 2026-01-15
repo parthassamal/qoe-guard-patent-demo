@@ -22,7 +22,41 @@ from .webhooks import notify_from_env, ValidationResult
 
 templates = Jinja2Templates(directory=str(__import__("pathlib").Path(__file__).resolve().parent / "templates"))
 
-app = FastAPI(title="QoE-Guard Patent Demo", version="0.1.0")
+app = FastAPI(
+    title="QoE-Guard API",
+    description="""
+    **QoE-aware JSON Variance Analytics System for Streaming API Validation**
+    
+    Validates streaming API responses by measuring hierarchical JSON variance versus stored baselines,
+    predicting QoE risk, and gating releases with PASS/WARN/FAIL decisions.
+    
+    ## Features
+    - Hierarchical JSON diff with path-level change detection
+    - Variance feature extraction (structural drift, type changes, numeric deltas)
+    - QoE risk scoring with weighted model
+    - Policy-based gating (PASS/WARN/FAIL)
+    - Explainable reports with top signals and path-level diffs
+    - Webhook notifications (Slack, Gmail, Discord, Teams)
+    
+    ## Quick Links
+    - **Web UI**: Visit `/` for the interactive interface
+    - **Swagger UI**: This page (`/docs`)
+    - **ReDoc**: Alternative docs at `/redoc`
+    - **OpenAPI Schema**: JSON schema at `/openapi.json`
+    """,
+    version="0.1.0",
+    contact={
+        "name": "QoE-Guard",
+        "url": "https://github.com/parthassamal/qoe-guard-patent-demo",
+    },
+    license_info={
+        "name": "MIT",
+    },
+    servers=[
+        {"url": "http://localhost:8010", "description": "Local development"},
+        {"url": "https://your-production-url.com", "description": "Production (update in code)"},
+    ],
+)
 
 load_dotenv()
 
@@ -73,7 +107,13 @@ def _fetch_json(url: str, *, params: Dict[str, Any] | None = None, headers: Dict
 def _human(ts: int) -> str:
     return datetime.fromtimestamp(ts, tz=timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
 
-@app.get("/", response_class=HTMLResponse)
+@app.get(
+    "/",
+    response_class=HTMLResponse,
+    tags=["Web UI"],
+    summary="Main Web Interface",
+    description="Interactive web UI for managing scenarios, running validations, and viewing reports.",
+)
 def index(request: Request):
     scenarios = list_scenarios()
     for s in scenarios:
@@ -148,7 +188,18 @@ def run_validation(v: int = 2):
     add_run(record)
     return RedirectResponse(url=f"/runs/{run_id}/report", status_code=302)
 
-@app.post("/seed_custom")
+@app.post(
+    "/seed_custom",
+    tags=["Scenarios"],
+    summary="Create or update baseline scenario",
+    description="""
+    Create or update a baseline scenario from a live endpoint or pasted JSON.
+    
+    - If `baseline_json` is provided, it's used directly (no network call)
+    - Otherwise, fetches from `base_url + endpoint` with optional headers/params
+    - Headers are NOT stored (security: avoid persisting tokens)
+    """,
+)
 def seed_custom(
     base_url: str = Form(...),
     endpoint: str = Form(...),
@@ -197,7 +248,20 @@ def seed_custom(
     except Exception as e:
         return _redirect_with_error(str(e))
 
-@app.post("/run_custom")
+@app.post(
+    "/run_custom",
+    tags=["Validation"],
+    summary="Run validation against stored baseline",
+    description="""
+    Run a validation comparing a candidate response against a stored baseline scenario.
+    
+    - Selects scenario by `scenario_id`
+    - Fetches candidate from URL (or uses `candidate_json` if provided)
+    - Computes hierarchical diff → variance features → risk score → PASS/WARN/FAIL
+    - Sends notifications (Slack/Gmail) if configured
+    - Returns redirect to report page
+    """,
+)
 def run_custom(
     request: Request,
     scenario_id: str = Form(...),
@@ -299,7 +363,13 @@ def run_custom(
     except Exception as e:
         return _redirect_with_error(str(e))
 
-@app.get("/api/runs/{run_id}")
+@app.get(
+    "/api/runs/{run_id}",
+    tags=["API"],
+    summary="Get validation run by ID",
+    description="Retrieve a validation run's complete data including risk score, decision, features, and changes.",
+    response_description="Validation run data as JSON",
+)
 def api_run(run_id: str):
     r = get_run(run_id)
     if not r:
