@@ -1,0 +1,30 @@
+{
+  "requestId": "req-123",
+  "playback": {
+    "manifestUrl": "https://cdn2.example.com/manifest_ll.m3u8",
+    "drm": {
+      "type": "widevine",
+      "licenseUrl": "https://drm.example.com/wv"
+    },
+    "maxBitrateKbps": "6000",
+    "startPositionSec": 12,
+    "lowLatencyMode": true
+  },
+  "entitlement": {
+    "allowed": true,
+    "plan": "premium",
+    "regionPolicy": {
+      "geo": "US",
+      "allowHD": true
+    }
+  },
+  "ads": {
+    "enabled": true
+  },
+  "metadata": {
+    "title": "Demo Movie",
+    "genre": "Drama",
+    "durationSec": 5400,
+    "audioTracks": ["en", "es"]
+  }
+}

@@ -1,0 +1,94 @@
+name: QoE-Guard API Validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      baseline_url:
+        description: 'Baseline API URL'
+        required: false
+      candidate_url:
+        description: 'Candidate API URL'
+        required: false
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  validate:
+    name: QoE Validation
+    runs-on: ubuntu-latest
+    
+    outputs:
+      decision: ${{ steps.qoe.outputs.decision }}
+      risk_score: ${{ steps.qoe.outputs.risk_score }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run QoE-Guard validation
+        id: qoe
+        run: |
+          # Example: validate demo v1 vs v2
+          python -m qoe_guard.cli validate \
+            --baseline tests/fixtures/baseline.json \
+            --candidate tests/fixtures/candidate.json \
+            --format github
+        continue-on-error: true
+      
+      - name: Create validation summary
+        run: |
+          echo "## QoE-Guard Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Decision | ${{ steps.qoe.outputs.decision }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Risk Score | ${{ steps.qoe.outputs.risk_score }} |" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Fail on FAIL decision
+        if: steps.qoe.outputs.decision == 'FAIL'
+        run: |
+          echo "::error::QoE-Guard validation FAILED"
+          exit 1
+
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: validate
+    if: always()
+    
+    steps:
+      - name: Slack notification (on failure)
+        if: needs.validate.outputs.decision == 'FAIL'
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "🚨 QoE-Guard FAIL",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*QoE-Guard Validation Failed*\n• Risk Score: ${{ needs.validate.outputs.risk_score }}\n• PR: ${{ github.event.pull_request.html_url }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        continue-on-error: true

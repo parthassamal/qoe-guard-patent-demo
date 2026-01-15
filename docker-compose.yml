@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  qoe-guard:
+    build: .
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - QOE_GUARD_TARGET_BASE_URL=http://demo-target:8001
+    depends_on:
+      - demo-target
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  demo-target:
+    build: .
+    command: ["python", "demo_target_service.py"]
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/play?v=1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Optional: Run CLI validation as a one-off job
+  validator:
+    build: .
+    profiles:
+      - cli
+    command: >
+      python -m qoe_guard.cli validate
+      --baseline-url http://demo-target:8001/play?v=1
+      --candidate-url http://demo-target:8001/play?v=2
+      --format summary
+    depends_on:
+      demo-target:
+        condition: service_healthy
