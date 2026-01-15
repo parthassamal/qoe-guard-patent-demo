@@ -245,5 +245,13 @@
         ]
       }
     }
+  },
+  {
+    "id": "run-a5356d89",
+    "scenario_id": "test-scenario",
+    "timestamp": "2026-01-15T05:15:48.209048",
+    "decision": "PASS",
+    "qoe_risk_score": 0.1,
+    "changes": []
   }
 ]

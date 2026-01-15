@@ -71,3 +71,7 @@ def features_to_dict(features: FeatureVector) -> dict:
         "array_length_changes": features.array_length_changes,
         "max_numeric_delta": features.max_numeric_delta,
     }
+
+
+# Alias for backward compatibility
+to_dict = features_to_dict

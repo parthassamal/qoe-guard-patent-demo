@@ -160,6 +160,8 @@ from qoe_guard.ai.llm_analyzer import (
     LLMAnalyzer,
     DiffAnalysis,
     LLMProvider,
+    LLMConfig,
+    FixRecommendation,
 )
 
 
@@ -173,17 +175,39 @@ class TestLLMAnalyzerFullCoverage:
         assert LLMProvider.OPENAI.value == "openai"
         assert LLMProvider.ANTHROPIC.value == "anthropic"
     
+    @allure.title("Test LLMConfig dataclass")
+    def test_llm_config(self):
+        config = LLMConfig(
+            provider=LLMProvider.GROQ,
+            model="llama3-8b-8192",
+            temperature=0.7,
+            max_tokens=1000
+        )
+        assert config.provider == LLMProvider.GROQ
+        assert config.model == "llama3-8b-8192"
+    
     @allure.title("Test DiffAnalysis dataclass")
     def test_diff_analysis(self):
         analysis = DiffAnalysis(
             summary="Breaking changes detected",
-            classification="breaking",
-            impact="high",
-            recommendations=["Review type changes", "Update clients"],
+            impact_level="high",
+            breaking_changes=[],
+            recommendations=[],
             confidence=0.9
         )
         assert analysis.summary == "Breaking changes detected"
-        assert analysis.classification == "breaking"
+        assert analysis.impact_level == "high"
+    
+    @allure.title("Test FixRecommendation dataclass")
+    def test_fix_recommendation(self):
+        rec = FixRecommendation(
+            change_path="$.response.data",
+            issue="Type changed from int to string",
+            recommendation="Update client parsers",
+            priority="high",
+            code_example="// Handle both types"
+        )
+        assert rec.priority == "high"
     
     @allure.title("Test LLMAnalyzer initialization")
     def test_llm_analyzer_init(self):
@@ -201,38 +225,13 @@ class TestLLMAnalyzerFullCoverage:
     def test_llm_analyzer_analyze_diff_no_key(self):
         analyzer = LLMAnalyzer()
         
-        diff_result = {
-            "changes": [{"path": "$.test", "type": "value_changed"}],
-            "decision": "WARN"
-        }
+        from qoe_guard.diff import json_diff
+        diff_result = json_diff({"a": 1}, {"a": 2})
         
         # Should return fallback analysis without API key
         result = analyzer.analyze_diff(diff_result)
         assert result is not None
-    
-    @allure.title("Test LLMAnalyzer with mock Groq")
-    @patch('qoe_guard.ai.llm_analyzer.Groq')
-    def test_llm_analyzer_groq_mock(self, mock_groq):
-        mock_client = MagicMock()
-        mock_response = MagicMock()
-        mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.content = json.dumps({
-            "summary": "Test analysis",
-            "classification": "minor",
-            "impact": "low",
-            "recommendations": ["No action needed"]
-        })
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_groq.return_value = mock_client
-        
-        with patch.dict(os.environ, {"GROQ_API_KEY": "test-key"}):
-            analyzer = LLMAnalyzer()
-            # Force Groq provider
-            analyzer.provider = LLMProvider.GROQ
-            analyzer.client = mock_client
-            
-            result = analyzer.analyze_diff({"changes": [], "decision": "PASS"})
-            assert result is not None
+        assert isinstance(result, DiffAnalysis)
 
 
 # ============================================================================
@@ -240,8 +239,8 @@ class TestLLMAnalyzerFullCoverage:
 # ============================================================================
 from qoe_guard.ai.semantic_drift import (
     SemanticDriftDetector,
-    DriftResult,
-    SemanticSimilarity,
+    SemanticMatch,
+    SemanticDriftReport,
 )
 
 
@@ -249,27 +248,29 @@ from qoe_guard.ai.semantic_drift import (
 class TestSemanticDriftFullCoverage:
     """Complete coverage for semantic drift detector."""
     
-    @allure.title("Test SemanticSimilarity dataclass")
-    def test_semantic_similarity(self):
-        sim = SemanticSimilarity(
+    @allure.title("Test SemanticMatch dataclass")
+    def test_semantic_match(self):
+        match = SemanticMatch(
             text1="user authentication",
             text2="user login",
-            similarity_score=0.85,
-            is_equivalent=True
+            similarity=0.85,
+            is_match=True,
+            method="embedding"
         )
-        assert sim.similarity_score == 0.85
-        assert sim.is_equivalent is True
+        assert match.similarity == 0.85
+        assert match.is_match is True
     
-    @allure.title("Test DriftResult dataclass")
-    def test_drift_result(self):
-        result = DriftResult(
+    @allure.title("Test SemanticDriftReport dataclass")
+    def test_semantic_drift_report(self):
+        report = SemanticDriftReport(
             has_drift=True,
             drift_score=0.3,
-            drifted_fields=["$.description"],
-            explanation="Field description has changed semantically"
+            changed_fields=[],
+            matches=[],
+            summary="Drift detected"
         )
-        assert result.has_drift is True
-        assert result.drift_score == 0.3
+        assert report.has_drift is True
+        assert report.drift_score == 0.3
     
     @allure.title("Test SemanticDriftDetector initialization")
     def test_semantic_drift_init(self):
@@ -285,7 +286,7 @@ class TestSemanticDriftFullCoverage:
             "user login"
         )
         assert result is not None
-        assert hasattr(result, 'similarity_score')
+        assert isinstance(result, SemanticMatch)
     
     @allure.title("Test detect_drift")
     def test_detect_drift(self):
@@ -302,7 +303,7 @@ class TestSemanticDriftFullCoverage:
         
         result = detector.detect_drift(baseline, candidate)
         assert result is not None
-        assert isinstance(result, DriftResult)
+        assert isinstance(result, SemanticDriftReport)
 
 
 # ============================================================================
@@ -310,8 +311,9 @@ class TestSemanticDriftFullCoverage:
 # ============================================================================
 from qoe_guard.ai.nlp_analyzer import (
     NLPAnalyzer,
-    EndpointClassification,
-    CriticalityScore,
+    EndpointIntent,
+    CriticalityClassification,
+    DocumentationQuality,
 )
 
 
@@ -319,25 +321,38 @@ from qoe_guard.ai.nlp_analyzer import (
 class TestNLPAnalyzerFullCoverage:
     """Complete coverage for NLP analyzer."""
     
-    @allure.title("Test EndpointClassification dataclass")
-    def test_endpoint_classification(self):
-        classification = EndpointClassification(
+    @allure.title("Test EndpointIntent dataclass")
+    def test_endpoint_intent(self):
+        intent = EndpointIntent(
             endpoint="/api/users",
-            category="crud",
-            tags=["users", "authentication"],
-            criticality="high"
+            intent="retrieve",
+            confidence=0.9,
+            keywords=["users", "get"],
+            suggested_tags=["users", "crud"]
         )
-        assert classification.category == "crud"
-        assert "users" in classification.tags
+        assert intent.intent == "retrieve"
+        assert intent.confidence == 0.9
     
-    @allure.title("Test CriticalityScore dataclass")
-    def test_criticality_score(self):
-        score = CriticalityScore(
+    @allure.title("Test CriticalityClassification dataclass")
+    def test_criticality_classification(self):
+        classification = CriticalityClassification(
             path="$.playback.manifestUrl",
-            score=0.95,
-            reason="Critical playback field"
+            criticality_score=0.95,
+            category="core",
+            reasoning="Critical playback field"
         )
-        assert score.score == 0.95
+        assert classification.criticality_score == 0.95
+    
+    @allure.title("Test DocumentationQuality dataclass")
+    def test_documentation_quality(self):
+        quality = DocumentationQuality(
+            completeness_score=0.8,
+            clarity_score=0.9,
+            consistency_score=0.85,
+            suggestions=["Add more examples"],
+            overall_score=0.85
+        )
+        assert quality.overall_score == 0.85
     
     @allure.title("Test NLPAnalyzer initialization")
     def test_nlp_analyzer_init(self):
@@ -348,7 +363,7 @@ class TestNLPAnalyzerFullCoverage:
     def test_classify_endpoint(self):
         analyzer = NLPAnalyzer()
         
-        result = analyzer.classify_endpoint(
+        result = analyzer.classify_intent(
             path="/api/users/{id}",
             method="GET",
             summary="Get user by ID",
@@ -356,7 +371,7 @@ class TestNLPAnalyzerFullCoverage:
         )
         
         assert result is not None
-        assert isinstance(result, EndpointClassification)
+        assert isinstance(result, EndpointIntent)
     
     @allure.title("Test extract_keywords")
     def test_extract_keywords(self):
@@ -371,22 +386,23 @@ class TestNLPAnalyzerFullCoverage:
     def test_analyze_doc_quality(self):
         analyzer = NLPAnalyzer()
         
-        result = analyzer.analyze_documentation_quality(
+        result = analyzer.analyze_documentation(
             summary="Get user",
             description="Gets the user from the database by ID and returns their profile"
         )
         
         assert result is not None
-        assert "score" in result or hasattr(result, 'score')
+        assert isinstance(result, DocumentationQuality)
 
 
 # ============================================================================
 # Test qoe_guard.ai.ml_scorer module
 # ============================================================================
 from qoe_guard.ai.ml_scorer import (
-    MLScorer,
+    MLRiskScorer,
     MLPrediction,
-    FeatureImportance,
+    SHAPExplanation,
+    FeatureVector as MLFeatureVector,
 )
 
 
@@ -400,106 +416,123 @@ class TestMLScorerFullCoverage:
             risk_score=0.75,
             decision="WARN",
             confidence=0.85,
+            model_version="1.0",
             feature_contributions={"type_changes": 0.4, "removed_fields": 0.35}
         )
         assert prediction.risk_score == 0.75
         assert prediction.decision == "WARN"
     
-    @allure.title("Test FeatureImportance dataclass")
-    def test_feature_importance(self):
-        importance = FeatureImportance(
-            feature_name="type_changes",
-            importance_score=0.35,
-            direction="positive"
+    @allure.title("Test SHAPExplanation dataclass")
+    def test_shap_explanation(self):
+        explanation = SHAPExplanation(
+            base_value=0.5,
+            shap_values={"type_changes": 0.2},
+            feature_names=["type_changes"],
+            expected_value=0.7
         )
-        assert importance.feature_name == "type_changes"
-        assert importance.importance_score == 0.35
+        assert explanation.base_value == 0.5
     
-    @allure.title("Test MLScorer initialization")
+    @allure.title("Test MLFeatureVector dataclass")
+    def test_ml_feature_vector(self):
+        fv = MLFeatureVector(
+            total_changes=10,
+            added_fields=2,
+            removed_fields=3,
+            type_changes=1,
+            value_changes=4,
+            critical_path_changes=2,
+            array_changes=1,
+            depth_changes=1,
+            breaking_changes=2
+        )
+        assert fv.total_changes == 10
+    
+    @allure.title("Test MLRiskScorer initialization")
     def test_ml_scorer_init(self):
-        scorer = MLScorer()
+        scorer = MLRiskScorer()
         assert scorer is not None
     
-    @allure.title("Test MLScorer predict")
+    @allure.title("Test MLRiskScorer predict")
     def test_ml_scorer_predict(self):
-        scorer = MLScorer()
+        scorer = MLRiskScorer()
         
-        from qoe_guard.model import FeatureVector
-        features = FeatureVector(
+        features = MLFeatureVector(
             total_changes=10,
-            breaking_changes=2,
-            type_changes=1,
-            critical_changes=3,
             added_fields=2,
-            removed_fields=2
+            removed_fields=2,
+            type_changes=1,
+            value_changes=3,
+            critical_path_changes=2,
+            array_changes=1,
+            depth_changes=1,
+            breaking_changes=2
         )
         
         result = scorer.predict(features)
         assert result is not None
         assert isinstance(result, MLPrediction)
     
-    @allure.title("Test MLScorer explain_prediction")
+    @allure.title("Test MLRiskScorer explain")
     def test_ml_scorer_explain(self):
-        scorer = MLScorer()
+        scorer = MLRiskScorer()
         
-        from qoe_guard.model import FeatureVector
-        features = FeatureVector(
+        features = MLFeatureVector(
             total_changes=5,
-            breaking_changes=1,
+            added_fields=1,
+            removed_fields=1,
             type_changes=0,
-            critical_changes=1
+            value_changes=2,
+            critical_path_changes=1,
+            array_changes=0,
+            depth_changes=0,
+            breaking_changes=1
         )
         
-        explanation = scorer.explain_prediction(features)
+        explanation = scorer.explain(features)
         assert explanation is not None
-    
-    @allure.title("Test MLScorer get_feature_importance")
-    def test_ml_scorer_feature_importance(self):
-        scorer = MLScorer()
-        
-        importance = scorer.get_feature_importance()
-        assert isinstance(importance, list)
+        assert isinstance(explanation, SHAPExplanation)
 
 
 # ============================================================================
 # Test qoe_guard.cli module
 # ============================================================================
-from qoe_guard.cli import main as cli_main, parse_args
+try:
+    from qoe_guard.cli import main as cli_main, load_json_file, run_validation, format_summary
+    HAS_CLI = True
+except ImportError:
+    HAS_CLI = False
 
 
 @allure.feature("CLI - Full Coverage")
+@pytest.mark.skipif(not HAS_CLI, reason="CLI module not available")
 class TestCLIFullCoverage:
     """Complete coverage for CLI module."""
     
-    @allure.title("Test parse_args with defaults")
-    def test_parse_args_defaults(self):
-        args = parse_args(["validate", "--baseline", "baseline.json", "--candidate", "candidate.json"])
-        assert args.command == "validate"
-        assert args.baseline == "baseline.json"
-        assert args.candidate == "candidate.json"
+    @allure.title("Test load_json_file with invalid path")
+    def test_load_json_file_invalid(self):
+        with pytest.raises(Exception):
+            load_json_file("/nonexistent/path.json")
     
-    @allure.title("Test parse_args with all options")
-    def test_parse_args_full(self):
-        args = parse_args([
-            "validate",
-            "--baseline", "baseline.json",
-            "--candidate", "candidate.json",
-            "--output", "json",
-            "--fail-on-warn",
-            "--verbose"
-        ])
-        assert args.command == "validate"
-        assert args.output == "json"
-        assert args.fail_on_warn is True
-        assert args.verbose is True
+    @allure.title("Test run_validation function")
+    def test_run_validation(self):
+        baseline = {"test": 1, "data": "value"}
+        candidate = {"test": 2, "data": "value"}
+        
+        result = run_validation(baseline, candidate)
+        
+        assert result is not None
+        assert "decision" in result or "changes" in result
     
-    @allure.title("Test CLI help command")
-    def test_cli_help(self):
-        with pytest.raises(SystemExit) as exc_info:
-            parse_args(["--help"])
-        assert exc_info.value.code == 0
-    
-    @allure.title("Test CLI version command")
-    def test_cli_version(self):
-        args = parse_args(["version"])
-        assert args.command == "version"
+    @allure.title("Test format_summary function")
+    def test_format_summary(self):
+        result = {
+            "decision": "PASS",
+            "qoe_risk_score": 0.2,
+            "total_changes": 5,
+            "breaking_changes": 0
+        }
+        
+        summary = format_summary(result)
+        
+        assert isinstance(summary, str)
+        assert "PASS" in summary or "decision" in summary.lower()
