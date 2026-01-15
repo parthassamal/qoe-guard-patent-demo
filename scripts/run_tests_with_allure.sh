@@ -48,11 +48,21 @@ if [[ "$2" == "--serve" ]] || [[ "$1" == "--serve" ]]; then
     SERVE_FLAG="--serve"
 fi
 
+# Check if allure-pytest is installed
+if python -c "import allure" 2>/dev/null; then
+    echo "✅ Allure plugin detected"
+    ALLURE_OPTS="--alluredir=allure-results --clean-alluredir"
+else
+    echo "⚠️  Allure plugin not found. Install with: pip install allure-pytest"
+    echo "   Running tests without Allure..."
+    ALLURE_OPTS=""
+fi
+
 # Run tests
-echo "Running: pytest $TEST_SUITE -v"
+echo "Running: pytest $TEST_SUITE -v $ALLURE_OPTS"
 echo ""
 
-pytest "$TEST_SUITE" -v
+pytest "$TEST_SUITE" -v $ALLURE_OPTS
 
 if [ $? -eq 0 ]; then
     echo ""

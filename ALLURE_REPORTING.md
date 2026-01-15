@@ -4,7 +4,7 @@ QoE-Guard uses [Allure Report](https://allurereport.org) for comprehensive test 
 
 ## Installation
 
-### Install Allure Commandline
+### Step 1: Install Allure Commandline
 
 **macOS:**
 ```bash
@@ -22,13 +22,24 @@ brew install allure
 scoop install allure
 ```
 
-### Install Python Dependencies
+### Step 2: Install Python Dependencies
 
 ```bash
+# Install all dependencies including allure-pytest
 pip install -r requirements.txt
+
+# Or install just allure-pytest
+pip install allure-pytest==2.13.2
 ```
 
-This will install `allure-pytest==2.13.2` automatically.
+**Verify Installation:**
+```bash
+# Check if allure-pytest is installed
+python -c "import allure; print('✅ Allure plugin installed')"
+
+# Check if allure commandline is available
+allure --version
+```
 
 ## Running Tests with Allure
 
@@ -63,14 +74,28 @@ allure open allure-report
 ### Option 3: Direct pytest Command
 
 ```bash
-# Run tests with Allure
-pytest tests/ -v --alluredir=allure-results
+# Run tests with Allure (requires allure-pytest installed)
+pytest tests/ -v --alluredir=allure-results --clean-alluredir
+
+# Or use the Allure-enabled config file
+pytest -c pytest-allure.ini tests/ -v
 
 # Generate report
 allure generate allure-results -o allure-report --clean
 
 # Serve report
 allure open allure-report
+```
+
+### Option 4: Run Tests Without Allure (Fallback)
+
+If `allure-pytest` is not installed, tests will still run normally:
+
+```bash
+# Tests run without Allure options
+pytest tests/ -v
+
+# No Allure report will be generated, but all tests execute
 ```
 
 ## Viewing Reports
@@ -193,7 +218,22 @@ Allure reports include:
 
 ## Configuration
 
-### pytest.ini
+### pytest.ini (Default - Allure Optional)
+
+The default `pytest.ini` works without Allure. To enable Allure:
+
+1. Install `allure-pytest`: `pip install allure-pytest`
+2. Use `pytest-allure.ini` or add Allure options manually:
+
+```bash
+# Use Allure-enabled config
+pytest -c pytest-allure.ini tests/ -v
+
+# Or add options manually
+pytest tests/ -v --alluredir=allure-results --clean-alluredir
+```
+
+### pytest-allure.ini (Allure Enabled)
 
 ```ini
 [pytest]
@@ -344,6 +384,25 @@ Ensure `allure-pytest` is installed:
 ```bash
 pip install allure-pytest==2.13.2
 ```
+
+### "unrecognized arguments: --alluredir"
+
+This means `allure-pytest` is not installed. Either:
+
+1. **Install allure-pytest:**
+   ```bash
+   pip install allure-pytest==2.13.2
+   ```
+
+2. **Or run tests without Allure:**
+   ```bash
+   pytest tests/ -v  # Works without Allure options
+   ```
+
+3. **Or use the Allure-enabled config:**
+   ```bash
+   pytest -c pytest-allure.ini tests/ -v
+   ```
 
 ## Resources
 

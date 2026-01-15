@@ -35,8 +35,11 @@ fi
 if [ ! -d "$RESULTS_DIR" ] || [ -z "$(ls -A $RESULTS_DIR 2>/dev/null)" ]; then
     echo "⚠️  No test results found in $RESULTS_DIR"
     echo ""
-    echo "Run tests first:"
-    echo "  pytest tests/ -v"
+    echo "Run tests first with Allure:"
+    echo "  pip install allure-pytest"
+    echo "  pytest tests/ -v --alluredir=allure-results"
+    echo "  or"
+    echo "  ./scripts/run_tests_with_allure.sh"
     echo ""
     exit 1
 fi
