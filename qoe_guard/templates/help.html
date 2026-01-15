@@ -9,41 +9,71 @@
     }
     
     .help-nav {
-        position: sticky;
-        top: 20px;
         background: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: var(--radius-lg);
-        padding: 20px;
+        padding: 16px 20px;
         margin-bottom: 24px;
     }
     
-    .help-nav h3 {
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+    .help-nav-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+    
+    .help-nav-header h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .help-nav-toggle {
+        background: none;
+        border: none;
         color: var(--text-muted);
-        margin-bottom: 12px;
+        cursor: pointer;
+        padding: 4px;
+        transition: transform 0.2s;
+    }
+    
+    .help-nav-toggle.collapsed {
+        transform: rotate(-90deg);
     }
     
     .help-nav-links {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
         gap: 8px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .help-nav-links.collapsed {
+        display: none;
     }
     
     .help-nav-links a {
         color: var(--text-secondary);
         text-decoration: none;
-        font-size: 14px;
-        padding: 6px 12px;
-        border-radius: var(--radius-sm);
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: 20px;
+        background: var(--bg-tertiary);
         transition: all 0.2s;
+        white-space: nowrap;
     }
     
-    .help-nav-links a:hover {
-        background: var(--bg-tertiary);
-        color: var(--text-primary);
+    .help-nav-links a:hover,
+    .help-nav-links a.active {
+        background: var(--accent-primary);
+        color: white;
     }
     
     .help-section {
@@ -52,6 +82,46 @@
         border-radius: var(--radius-lg);
         padding: 32px;
         margin-bottom: 24px;
+    }
+    
+    /* Back to top button */
+    .back-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: var(--accent-primary);
+        color: white;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s;
+        z-index: 100;
+        border: none;
+    }
+    
+    .back-to-top.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .back-to-top:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .help-nav-links a {
+            font-size: 12px;
+            padding: 6px 12px;
+        }
     }
     
     .help-section h2 {
@@ -225,20 +295,23 @@
 </div>
 
 <div class="help-container">
-    <!-- Quick Navigation -->
+    <!-- Quick Jump Navigation -->
     <div class="help-nav">
-        <h3>Quick Navigation</h3>
-        <div class="help-nav-links">
-            <a href="#getting-started">🚀 Getting Started</a>
-            <a href="#dashboard">📊 Dashboard</a>
-            <a href="#inventory">📦 Endpoint Inventory</a>
-            <a href="#validation">✅ Running Validations</a>
-            <a href="#ai-analysis">🧠 AI Analysis</a>
-            <a href="#governance">🛡️ Governance</a>
-            <a href="#scoring">📈 Scoring System</a>
-            <a href="#api">🔌 API Reference</a>
-            <a href="#sample-data">📋 Sample Data</a>
-            <a href="#troubleshooting">🔧 Troubleshooting</a>
+        <div class="help-nav-header" onclick="toggleNav()">
+            <h3>📑 Table of Contents</h3>
+            <button class="help-nav-toggle" id="navToggle">▼</button>
+        </div>
+        <div class="help-nav-links" id="navLinks">
+            <a href="#getting-started" data-section="getting-started">🚀 Getting Started</a>
+            <a href="#dashboard" data-section="dashboard">📊 Dashboard</a>
+            <a href="#inventory" data-section="inventory">📦 Endpoint Inventory</a>
+            <a href="#validation" data-section="validation">✅ Validations</a>
+            <a href="#ai-analysis" data-section="ai-analysis">🧠 AI Analysis</a>
+            <a href="#governance" data-section="governance">🛡️ Governance</a>
+            <a href="#scoring" data-section="scoring">📈 Scoring</a>
+            <a href="#api" data-section="api">🔌 API Reference</a>
+            <a href="#sample-data" data-section="sample-data">📋 Sample Data</a>
+            <a href="#troubleshooting" data-section="troubleshooting">🔧 Troubleshooting</a>
         </div>
     </div>
 
@@ -691,14 +764,16 @@ POST /governance/{id}/reject   # Reject</code></pre>
             <p>Contact the development team or check the README for additional documentation.</p>
         </div>
     </section>
-</div>
+</div><!-- /.help-container -->
+
+<!-- Back to Top Button -->
+<button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
 {% endblock %}
 
 {% block scripts %}
 <script>
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
-            // Show brief feedback
             const btn = event.target;
             const originalText = btn.innerText;
             btn.innerText = 'Copied!';
@@ -706,13 +781,60 @@ POST /governance/{id}/reject   # Reject</code></pre>
         });
     }
     
+    // Toggle navigation
+    function toggleNav() {
+        const links = document.getElementById('navLinks');
+        const toggle = document.getElementById('navToggle');
+        links.classList.toggle('collapsed');
+        toggle.classList.toggle('collapsed');
+    }
+    
+    // Scroll to top
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // Show/hide back to top button
+    window.addEventListener('scroll', () => {
+        const btn = document.getElementById('backToTop');
+        if (window.scrollY > 300) {
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+        }
+    });
+    
     // Smooth scroll for anchor links
-    document.querySelectorAll('.help-nav-links a').forEach(link => {
+    const navLinks = document.querySelectorAll('.help-nav-links a');
+    const sections = document.querySelectorAll('.help-section');
+    
+    navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const target = document.querySelector(link.getAttribute('href'));
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            }
         });
     });
+    
+    // Highlight active section on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id;
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('data-section') === id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    
+    sections.forEach(section => observer.observe(section));
 </script>
 {% endblock %}
