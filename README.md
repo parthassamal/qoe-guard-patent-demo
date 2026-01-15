@@ -63,6 +63,57 @@ python -m qoe_guard.cli validate \
 
 ---
 
+## 🔍 Swagger/OpenAPI Analyzer
+
+**NEW:** Test all endpoints in your Swagger/OpenAPI specification for broken links, authentication issues, and timeouts.
+
+### Features
+
+- **Automatic Endpoint Discovery**: Parses OpenAPI spec (JSON or YAML) and extracts all endpoints
+- **Health Testing**: Tests each endpoint and classifies status (healthy, broken, auth required, timeout)
+- **Smart Recommendations**: Provides actionable recommendations based on test results
+- **Detailed Reports**: Shows response times, status codes, and error messages for each endpoint
+
+### Usage
+
+1. **Via Web UI:**
+   - Visit http://localhost:8010/swagger-analyzer
+   - Enter your Swagger URL (e.g., `https://api.example.com/openapi.json`)
+   - Optionally override base URL, add headers, set timeout
+   - Click "Analyze Endpoints"
+
+2. **Via API:**
+```bash
+curl -X POST http://localhost:8010/api/swagger/analyze \
+  -F "swagger_url=https://api.example.com/openapi.json" \
+  -F "base_url=https://api.example.com" \
+  -F "headers_json={\"Authorization\": \"Bearer token\"}" \
+  -F "timeout=10" \
+  -F "test_all=true"
+```
+
+### Example Output
+
+```
+✅ 12 Healthy endpoints
+⚠️ 3 Auth Required endpoints
+❌ 2 Broken endpoints (404, 500)
+⏱️ 1 Timeout
+
+Recommendations:
+• ⚠️ 3 endpoint(s) require authentication
+• ❌ 2 endpoint(s) returned errors (4xx/5xx)
+```
+
+### Use Cases
+
+- **API Health Checks**: Verify all endpoints are working after deployment
+- **Documentation Validation**: Ensure Swagger spec matches actual API behavior
+- **Pre-deployment Testing**: Catch broken endpoints before they reach production
+- **Authentication Audit**: Identify which endpoints require auth
+
+---
+
 ## 🏗️ Architecture
 
 ### System Overview
@@ -351,8 +402,10 @@ When the server is running, visit:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/` | Web UI |
+| `GET` | `/swagger-analyzer` | Swagger Analyzer UI |
 | `POST` | `/seed_custom` | Create baseline scenario |
 | `POST` | `/run_custom` | Run validation |
+| `POST` | `/api/swagger/analyze` | Analyze Swagger/OpenAPI spec |
 | `GET` | `/runs/{id}/report` | View report |
 | `GET` | `/api/runs/{id}` | Get run as JSON |
 

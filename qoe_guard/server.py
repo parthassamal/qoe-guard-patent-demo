@@ -19,6 +19,7 @@ from .features import extract_features, to_dict
 from .model import score
 from .storage import upsert_scenario, list_scenarios, list_runs, add_run, get_run
 from .webhooks import notify_from_env, ValidationResult
+from .swagger_analyzer import analyze_swagger, to_dict as swagger_analysis_to_dict
 
 templates = Jinja2Templates(directory=str(__import__("pathlib").Path(__file__).resolve().parent / "templates"))
 
@@ -362,6 +363,51 @@ def run_custom(
         return RedirectResponse(url=f"/runs/{run_id}/report", status_code=302)
     except Exception as e:
         return _redirect_with_error(str(e))
+
+@app.post(
+    "/api/swagger/analyze",
+    tags=["Swagger Analyzer"],
+    summary="Analyze Swagger/OpenAPI specification",
+    description="""
+    Analyze a Swagger/OpenAPI specification and test all endpoints for:
+    - Broken links (404, 500, etc.)
+    - Authentication issues (401, 403)
+    - Timeout issues
+    - Invalid responses
+    
+    Returns analysis with endpoint health status and recommendations.
+    """,
+)
+def analyze_swagger_endpoint(
+    swagger_url: str = Form(...),
+    base_url: str = Form(""),
+    headers_json: str = Form(""),
+    timeout: int = Form(10),
+    test_all: bool = Form(False),
+):
+    """Analyze Swagger/OpenAPI spec and test endpoints."""
+    try:
+        headers = _parse_json_maybe(headers_json, default={})
+        if not isinstance(headers, dict):
+            raise ValueError("headers_json must be a JSON object")
+        
+        analysis = analyze_swagger(
+            swagger_url=swagger_url.strip(),
+            base_url=base_url.strip() or None,
+            headers=headers,
+            timeout=timeout,
+            test_all=test_all,
+        )
+        
+        return JSONResponse(swagger_analysis_to_dict(analysis))
+        
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)
+
+@app.get("/swagger-analyzer", response_class=HTMLResponse)
+def swagger_analyzer_page(request: Request):
+    """Swagger analyzer UI page."""
+    return templates.TemplateResponse("swagger_analyzer.html", {"request": request})
 
 @app.get(
     "/api/runs/{run_id}",
