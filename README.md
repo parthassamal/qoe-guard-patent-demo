@@ -11,10 +11,11 @@ A comprehensive API validation system that ingests any Swagger/OpenAPI specifica
 
 ## Core Differentiators
 
-Most solutions do one of these in isolation: lint specs, generate tests, do contract testing, check links. **QoE-Guard unifies them** and adds two high-leverage, defensible layers:
+Most solutions do one of these in isolation: lint specs, generate tests, do contract testing, check links. **QoE-Guard unifies them** and adds high-leverage, defensible layers:
 
 1. **Brittleness Quantification** — Likelihood of consumer breakage + operational fragility
 2. **QoE-Aware Prioritization** — Changes weighted by downstream playback/ads/entitlement impact
+3. **AI/ML-Powered Analysis** — LLM explanations, semantic drift detection, anomaly detection, explainable ML scoring
 
 ---
 
@@ -28,6 +29,7 @@ Most solutions do one of these in isolation: lint specs, generate tests, do cont
 | **QoE-Aware Criticality Weighting** | Weight changes by playback/entitlement/ads/DRM criticality |
 | **Drift Classification** | Spec drift vs Runtime drift vs Undocumented (dangerous) drift |
 | **Baseline Governance** | Promote baselines only via approvals with audit trail and rollback |
+| **AI/ML Analysis Suite** | LLM explanations (Groq/GPT-4/Claude), semantic drift, anomaly detection, SHAP explanations |
 
 ---
 
@@ -238,6 +240,193 @@ flowchart TD
     
     H -->|No| K[RUNTIME_DRIFT<br/>Investigate]
     H -->|Yes| L[UNDOCUMENTED<br/>⚠️ CRITICAL]
+```
+
+---
+
+## 🧠 AI/ML-Powered Analysis
+
+QoE-Guard integrates advanced AI/ML capabilities for intelligent analysis:
+
+### LLM-Powered Diff Analysis
+
+Supports **Groq** (fastest), **OpenAI GPT-4**, and **Anthropic Claude**:
+
+```python
+from qoe_guard.ai import LLMAnalyzer, LLMProvider
+
+# Auto-detects available provider (Groq > OpenAI > Anthropic)
+analyzer = LLMAnalyzer()
+
+# Or specify provider
+analyzer = LLMAnalyzer(provider=LLMProvider.GROQ)
+
+result = analyzer.analyze_diff(
+    baseline={"playback": {"url": "old.m3u8"}},
+    candidate={"playback": {"url": "new.m3u8", "drm": "removed"}},
+    changes=[{"path": "$.playback.drm", "change_type": "removed"}],
+)
+
+print(result.summary)          # Natural language summary
+print(result.breaking_changes) # ["$.playback.drm: removed"]
+print(result.risk_assessment)  # "HIGH: DRM removal affects entitlement"
+print(result.recommendations)  # ["Verify DRM fallback", "Update clients"]
+```
+
+### Semantic Drift Detection
+
+Uses **sentence-transformers** to detect field renames and semantic changes:
+
+```python
+from qoe_guard.ai import SemanticDriftDetector
+
+detector = SemanticDriftDetector(similarity_threshold=0.75)
+
+result = detector.detect_drift(
+    baseline={"playback_url": "https://cdn.example.com"},
+    candidate={"manifest_url": "https://cdn.example.com"},
+)
+
+# Detects that playback_url → manifest_url is a rename
+print(result.potential_renames)
+# [SemanticMatch(source="playback_url", target="manifest_url", similarity=0.89)]
+```
+
+### ML Anomaly Detection
+
+Uses **Isolation Forest** / **One-Class SVM** to detect runtime anomalies:
+
+```python
+from qoe_guard.ai import AnomalyDetector, RuntimeMetrics
+from datetime import datetime
+
+detector = AnomalyDetector(algorithm="isolation_forest")
+
+# Fit on historical data
+detector.fit(historical_metrics)
+
+# Detect anomalies in new data
+metrics = [
+    RuntimeMetrics(latency_ms=150, status_code=200, endpoint="/playback"),
+    RuntimeMetrics(latency_ms=5200, status_code=500, endpoint="/playback"),  # Anomaly!
+]
+
+report = detector.detect_batch(metrics)
+print(report.anomaly_rate)       # 0.5 (50%)
+print(report.patterns_detected)  # ["Latency spike: 1 requests > 5s"]
+```
+
+### NLP Endpoint Classification
+
+Auto-classifies endpoints by intent and criticality:
+
+```python
+from qoe_guard.ai import NLPAnalyzer
+
+analyzer = NLPAnalyzer()
+
+intent = analyzer.extract_intent(
+    endpoint_path="/api/v1/playback/manifest/{contentId}",
+    method="GET",
+    description="Retrieves playback manifest with DRM license info",
+)
+
+print(intent.primary_intent)    # "playback"
+print(intent.business_domain)   # "content_delivery"
+
+criticality = analyzer.classify_criticality(
+    endpoint_path="/api/v1/playback/manifest/{contentId}",
+    method="GET",
+)
+
+print(criticality.level)        # "critical"
+print(criticality.qoe_impact)   # "Direct impact on playback"
+```
+
+### Explainable ML Risk Scoring
+
+Uses **XGBoost** with **SHAP explanations**:
+
+```python
+from qoe_guard.ai import MLRiskScorer, extract_features_from_changes
+
+scorer = MLRiskScorer(model_type="xgboost")
+
+# Extract features from changes
+features = extract_features_from_changes(
+    changes=[{"change_type": "removed", "path": "$.drm.license"}],
+    criticality_profiles={"$.drm": 0.95},
+)
+
+# Get prediction with explanation
+prediction = scorer.predict(features)
+print(prediction.risk_score)    # 0.78
+print(prediction.decision)      # "FAIL"
+print(prediction.explanation)   # "High risk (78%). Top contributor: critical_path_changes"
+
+# Get SHAP explanation
+shap = scorer.explain(features)
+print(shap.top_positive)  # Features pushing toward high risk
+print(shap.top_negative)  # Features pushing toward low risk
+```
+
+### AI API Endpoints
+
+```bash
+# Check AI component status
+GET /ai/status
+
+# LLM diff analysis
+POST /ai/analyze-diff
+{
+  "baseline": {...},
+  "candidate": {...},
+  "llm_provider": "groq"  # or "openai", "anthropic"
+}
+
+# Semantic drift detection
+POST /ai/semantic-drift
+{
+  "baseline": {...},
+  "candidate": {...},
+  "similarity_threshold": 0.75
+}
+
+# Anomaly detection
+POST /ai/detect-anomalies
+{
+  "algorithm": "isolation_forest",
+  "metrics": [...]
+}
+
+# Endpoint classification
+POST /ai/classify-endpoint
+{
+  "endpoint_path": "/api/playback",
+  "method": "GET",
+  "description": "..."
+}
+
+# ML risk scoring
+POST /ai/ml-score
+{
+  "changes": [...],
+  "criticality_profiles": {...}
+}
+```
+
+### Environment Variables for AI
+
+```bash
+# LLM Providers (at least one required for LLM features)
+GROQ_API_KEY=gsk_...           # Groq (recommended - fastest)
+OPENAI_API_KEY=sk-...          # OpenAI GPT-4
+ANTHROPIC_API_KEY=sk-ant-...   # Anthropic Claude
+
+# Optional: Override default models
+GROQ_MODEL=llama-3.1-70b-versatile
+OPENAI_MODEL=gpt-4-turbo-preview
+ANTHROPIC_MODEL=claude-3-sonnet-20240229
 ```
 
 ---

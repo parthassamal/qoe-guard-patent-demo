@@ -8,3 +8,4 @@ FULLSTACK_AI_PROFILE.md
 README_PATENT_DEMO.md
 __pycache__/
 .venv/
+*.db

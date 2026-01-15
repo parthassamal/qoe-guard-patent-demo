@@ -31,3 +31,35 @@ python-dotenv==1.0.1
 # Testing
 pytest==8.3.4
 pytest-asyncio==0.23.3
+
+# ===========================================
+# AI/ML/NLP Libraries
+# ===========================================
+
+# LLM Providers
+groq==0.4.2                    # Groq - fastest LLM inference
+openai==1.12.0                 # OpenAI GPT-4
+anthropic==0.18.1              # Anthropic Claude
+
+# Embeddings & Semantic Search
+sentence-transformers==2.3.1   # Text embeddings for semantic similarity
+transformers==4.37.2           # Hugging Face transformers
+torch>=2.0.0                   # PyTorch backend for transformers
+
+# NLP & Text Analysis
+spacy==3.7.4                   # Industrial-strength NLP
+keybert==0.8.3                 # Keyword extraction
+
+# Machine Learning
+scikit-learn==1.4.0            # ML algorithms
+xgboost==2.0.3                 # Gradient boosting
+lightgbm==4.3.0                # Fast gradient boosting
+shap==0.44.1                   # Explainable AI
+
+# Numerical & Scientific
+numpy>=1.24.0                  # Numerical computing
+scipy>=1.11.0                  # Scientific computing
+pandas>=2.0.0                  # Data manipulation
+
+# Optional: Download spaCy model after install
+# python -m spacy download en_core_web_sm

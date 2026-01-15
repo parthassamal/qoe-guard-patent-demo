@@ -29,6 +29,7 @@ from .api import (
     validations_router,
     governance_router,
 )
+from .api.ai_analysis import router as ai_router
 
 
 # Create all tables on startup
@@ -64,6 +65,14 @@ QoE-Guard is a comprehensive API validation system that:
 - **QoE Risk Score (0.0-1.0)**: Measures potential impact on Quality of Experience based on changes to critical paths.
 - **Drift Classification**: Categorizes changes as spec drift, runtime drift, or undocumented (dangerous) drift.
 - **Policy Engine**: Applies configurable rules to determine PASS/WARN/FAIL decisions.
+
+### AI/ML Features
+
+- **LLM Analysis**: GPT-4, Claude, or Groq-powered diff analysis with natural language explanations
+- **Semantic Drift Detection**: Embedding-based detection of field renames and semantic changes
+- **Anomaly Detection**: ML-based runtime anomaly detection using Isolation Forest
+- **NLP Classification**: Auto-classify endpoints by intent and criticality
+- **Explainable ML Scoring**: SHAP-powered explanations for risk predictions
 """,
     version="1.0.0",
     openapi_tags=[
@@ -72,6 +81,7 @@ QoE-Guard is a comprehensive API validation system that:
         {"name": "Scenarios", "description": "Test scenario management"},
         {"name": "Validations", "description": "Validation job execution and results"},
         {"name": "Governance", "description": "Baseline promotion and policy management"},
+        {"name": "AI Analysis", "description": "AI/ML-powered analysis features"},
     ],
     lifespan=lifespan,
 )
@@ -94,6 +104,7 @@ app.include_router(specs_router)
 app.include_router(scenarios_router)
 app.include_router(validations_router)
 app.include_router(governance_router)
+app.include_router(ai_router)
 
 # Templates
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
@@ -147,6 +158,13 @@ async def governance_page(request: Request):
 async def settings_page(request: Request):
     """Settings and configuration page."""
     return templates.TemplateResponse("settings.html", {"request": request})
+
+
+# AI Analysis page
+@app.get("/ai-analysis", response_class=HTMLResponse, include_in_schema=False)
+async def ai_analysis_page(request: Request):
+    """AI-powered analysis dashboard."""
+    return templates.TemplateResponse("ai_analysis.html", {"request": request})
 
 
 # Login page
