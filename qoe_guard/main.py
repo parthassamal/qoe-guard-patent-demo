@@ -30,6 +30,7 @@ from .api import (
     governance_router,
 )
 from .api.ai_analysis import router as ai_router
+from .api.test_data import router as test_data_router
 
 
 # Create all tables on startup
@@ -105,6 +106,7 @@ app.include_router(scenarios_router)
 app.include_router(validations_router)
 app.include_router(governance_router)
 app.include_router(ai_router)
+app.include_router(test_data_router)
 
 # Templates
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
@@ -158,6 +160,13 @@ async def governance_page(request: Request):
 async def settings_page(request: Request):
     """Settings and configuration page."""
     return templates.TemplateResponse("settings.html", {"request": request})
+
+
+# Help Guide page
+@app.get("/help", response_class=HTMLResponse, include_in_schema=False)
+async def help_page(request: Request):
+    """Help guide and documentation page."""
+    return templates.TemplateResponse("help.html", {"request": request})
 
 
 # AI Analysis page

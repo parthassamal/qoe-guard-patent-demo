@@ -1,263 +1,188 @@
 """
-Criticality Profiles for QoE-Aware Scoring.
+Criticality Profiles Module.
 
-Defines default criticality weights for:
-- Endpoint tags (playback, entitlement, ads, drm, etc.)
-- JSON paths (manifest URLs, license URLs, etc.)
+Defines criticality scores for different API endpoints and JSON paths.
+These profiles determine how much a change impacts QoE.
 """
-from __future__ import annotations
-
-import fnmatch
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
+import re
 
 
-# Default criticality weights for endpoint tags
-DEFAULT_TAG_CRITICALITY = {
-    "playback": 1.0,
-    "entitlement": 0.95,
+# Default criticality profiles for streaming services
+DEFAULT_CRITICALITY_PROFILES: Dict[str, float] = {
+    # Endpoint tags/categories
+    "playback": 1.00,
     "drm": 0.95,
-    "license": 0.95,
+    "entitlement": 0.95,
+    "manifest": 0.95,
+    "license": 0.90,
     "ads": 0.85,
-    "advertising": 0.85,
+    "advertisement": 0.85,
     "auth": 0.80,
     "authentication": 0.80,
-    "session": 0.75,
-    "user": 0.60,
-    "profile": 0.50,
+    "authorization": 0.80,
+    "billing": 0.75,
+    "subscription": 0.75,
+    "user": 0.70,
+    "profile": 0.60,
+    "search": 0.55,
+    "recommendation": 0.50,
     "metadata": 0.40,
-    "search": 0.35,
+    "catalog": 0.40,
     "analytics": 0.30,
+    "telemetry": 0.25,
     "logging": 0.20,
     "health": 0.10,
+    "status": 0.10,
+    
+    # Specific JSON paths (exact or pattern)
+    "manifestUrl": 1.00,
+    "manifest_url": 1.00,
+    "playbackUrl": 1.00,
+    "playback_url": 1.00,
+    "licenseUrl": 1.00,
+    "license_url": 1.00,
+    "drmUrl": 0.95,
+    "drm_url": 0.95,
+    "allowed": 0.95,
+    "entitled": 0.95,
+    "granted": 0.95,
+    "maxBitrate": 0.80,
+    "max_bitrate": 0.80,
+    "quality": 0.75,
+    "resolution": 0.70,
+    "adUrl": 0.85,
+    "prerollUrl": 0.80,
+    "accessToken": 0.90,
+    "access_token": 0.90,
 }
 
-# Default criticality weights for JSON paths (glob patterns)
-DEFAULT_PATH_CRITICALITY = {
-    "$.playback.manifestUrl": 1.0,
-    "$.playback.manifest*": 0.95,
-    "$.drm.licenseUrl": 1.0,
-    "$.drm.license*": 0.95,
-    "$.drm.*": 0.90,
-    "$.entitlement.allowed": 0.95,
-    "$.entitlement.*": 0.85,
-    "$.ads.adDecision": 0.85,
-    "$.ads.adDecision.*": 0.80,
-    "$.ads.*": 0.75,
-    "$.playback.maxBitrateKbps": 0.70,
-    "$.playback.startPositionSec": 0.65,
-    "$.playback.*": 0.60,
-    "$.session.*": 0.55,
-    "$.metadata.*": 0.30,
-    "$.analytics.*": 0.20,
-}
+# Glob pattern to exact mapping
+CRITICALITY_PATTERNS = [
+    (r"\$\.playback\..*[Uu]rl$", 1.00),
+    (r"\$\.drm\..*[Uu]rl$", 0.95),
+    (r"\$\.entitlement\.(allowed|granted)", 0.95),
+    (r"\$\.ads\.", 0.85),
+    (r"\$\.auth\.", 0.80),
+    (r"\$\.analytics\.", 0.30),
+    (r"\$\.metadata\.", 0.40),
+]
 
 
-@dataclass
-class CriticalityProfiles:
-    """Criticality profile configuration."""
-    tag_weights: Dict[str, float] = field(default_factory=lambda: DEFAULT_TAG_CRITICALITY.copy())
-    path_weights: Dict[str, float] = field(default_factory=lambda: DEFAULT_PATH_CRITICALITY.copy())
-    default_weight: float = 0.5
-
-
-# Global default profiles
-DEFAULT_CRITICALITY_PROFILES = CriticalityProfiles()
-
-
-def get_criticality_weight(
-    profiles: CriticalityProfiles,
-    tags: Optional[List[str]] = None,
-    json_path: Optional[str] = None,
+def get_criticality_for_path(
+    path: str,
+    profiles: Optional[Dict[str, float]] = None
 ) -> float:
     """
-    Get the criticality weight for a tag or JSON path.
+    Get criticality score for a JSON path.
     
     Args:
-        profiles: Criticality profiles to use
-        tags: List of endpoint tags
-        json_path: JSON path (e.g., "$.playback.manifestUrl")
-    
+        path: JSON path (e.g., "$.playback.manifestUrl")
+        profiles: Optional custom criticality profiles
+        
     Returns:
-        Criticality weight (0.0 - 1.0)
+        Criticality score from 0.0 to 1.0
     """
-    max_weight = profiles.default_weight
+    p = profiles or DEFAULT_CRITICALITY_PROFILES
     
-    # Check tags
-    if tags:
-        for tag in tags:
-            tag_lower = tag.lower()
-            if tag_lower in profiles.tag_weights:
-                max_weight = max(max_weight, profiles.tag_weights[tag_lower])
-            else:
-                # Partial match
-                for key, weight in profiles.tag_weights.items():
-                    if key in tag_lower or tag_lower in key:
-                        max_weight = max(max_weight, weight * 0.8)
+    # Extract the last segment of the path
+    path_parts = path.replace("$.", "").replace("$", "").split(".")
     
-    # Check JSON path
-    if json_path:
-        for pattern, weight in profiles.path_weights.items():
-            if _path_matches(json_path, pattern):
-                max_weight = max(max_weight, weight)
+    # Check exact matches first
+    for part in reversed(path_parts):
+        # Remove array indices
+        clean_part = re.sub(r'\[\d+\]', '', part)
+        if clean_part in p:
+            return p[clean_part]
     
-    return max_weight
-
-
-def get_path_criticality(
-    profiles: CriticalityProfiles,
-    json_path: str,
-) -> float:
-    """
-    Get criticality weight for a specific JSON path.
+    # Check category matches
+    if path_parts:
+        first_segment = path_parts[0].lower()
+        for key, score in p.items():
+            if key.lower() == first_segment:
+                return score
     
-    Args:
-        profiles: Criticality profiles to use
-        json_path: JSON path (e.g., "$.playback.manifestUrl")
+    # Check patterns
+    for pattern, score in CRITICALITY_PATTERNS:
+        if re.search(pattern, path, re.IGNORECASE):
+            return score
     
-    Returns:
-        Criticality weight (0.0 - 1.0)
-    """
-    # Direct match first
-    if json_path in profiles.path_weights:
-        return profiles.path_weights[json_path]
-    
-    # Pattern matching
-    best_match = profiles.default_weight
-    best_specificity = 0
-    
-    for pattern, weight in profiles.path_weights.items():
-        if _path_matches(json_path, pattern):
-            # Prefer more specific patterns
-            specificity = len(pattern.replace("*", ""))
-            if specificity > best_specificity:
-                best_specificity = specificity
-                best_match = weight
-    
-    return best_match
-
-
-def _path_matches(path: str, pattern: str) -> bool:
-    """
-    Check if a JSON path matches a glob pattern.
-    
-    Supports:
-    - Exact match: $.playback.manifestUrl
-    - Wildcard suffix: $.playback.*
-    - Wildcard within: $.playback.manifest*
-    """
-    # Simple glob matching
-    if "*" in pattern:
-        # Convert to fnmatch pattern
-        return fnmatch.fnmatch(path, pattern)
-    else:
-        return path == pattern
-
-
-def is_critical_path(
-    json_path: str,
-    profiles: Optional[CriticalityProfiles] = None,
-    threshold: float = 0.7,
-) -> bool:
-    """
-    Check if a JSON path is considered critical.
-    
-    Args:
-        json_path: JSON path to check
-        profiles: Criticality profiles (uses default if None)
-        threshold: Criticality threshold for "critical" classification
-    
-    Returns:
-        True if path criticality >= threshold
-    """
-    if profiles is None:
-        profiles = DEFAULT_CRITICALITY_PROFILES
-    
-    return get_path_criticality(profiles, json_path) >= threshold
-
-
-def get_critical_paths(
-    profiles: Optional[CriticalityProfiles] = None,
-    threshold: float = 0.7,
-) -> List[str]:
-    """
-    Get all path patterns that are considered critical.
-    
-    Args:
-        profiles: Criticality profiles (uses default if None)
-        threshold: Criticality threshold
-    
-    Returns:
-        List of critical path patterns
-    """
-    if profiles is None:
-        profiles = DEFAULT_CRITICALITY_PROFILES
-    
-    return [
-        path for path, weight in profiles.path_weights.items()
-        if weight >= threshold
+    # Check if any part of path contains critical keywords
+    path_lower = path.lower()
+    critical_keywords = [
+        ("playback", 0.90),
+        ("drm", 0.85),
+        ("license", 0.85),
+        ("entitle", 0.85),
+        ("manifest", 0.85),
+        ("auth", 0.70),
+        ("ads", 0.70),
+        ("billing", 0.65),
     ]
+    
+    for keyword, score in critical_keywords:
+        if keyword in path_lower:
+            return score
+    
+    # Default: medium-low criticality
+    return 0.35
 
 
-def get_tag_criticality(
-    tag: str,
-    profiles: Optional[CriticalityProfiles] = None,
+def get_criticality_for_tags(
+    tags: List[str],
+    profiles: Optional[Dict[str, float]] = None
 ) -> float:
     """
-    Get criticality weight for a tag.
+    Get highest criticality score for a list of endpoint tags.
     
     Args:
-        tag: Tag name
-        profiles: Criticality profiles (uses default if None)
-    
+        tags: List of endpoint tags
+        profiles: Optional custom criticality profiles
+        
     Returns:
-        Criticality weight (0.0 - 1.0)
+        Highest criticality score from tags
     """
-    if profiles is None:
-        profiles = DEFAULT_CRITICALITY_PROFILES
+    if not tags:
+        return 0.35
     
-    tag_lower = tag.lower()
+    p = profiles or DEFAULT_CRITICALITY_PROFILES
     
-    if tag_lower in profiles.tag_weights:
-        return profiles.tag_weights[tag_lower]
+    max_score = 0.0
+    for tag in tags:
+        tag_lower = tag.lower()
+        for key, score in p.items():
+            if key.lower() == tag_lower:
+                max_score = max(max_score, score)
+                break
+        else:
+            # Check partial matches
+            for keyword, score in [
+                ("playback", 0.90),
+                ("drm", 0.85),
+                ("entitle", 0.85),
+                ("auth", 0.70),
+            ]:
+                if keyword in tag_lower:
+                    max_score = max(max_score, score)
     
-    # Partial match
-    for key, weight in profiles.tag_weights.items():
-        if key in tag_lower or tag_lower in key:
-            return weight * 0.8
-    
-    return profiles.default_weight
+    return max_score if max_score > 0 else 0.35
 
 
-def merge_profiles(
-    base: CriticalityProfiles,
-    overrides: Dict[str, Any],
-) -> CriticalityProfiles:
+def calculate_criticality_weighted_changes(
+    changed_paths: List[str],
+    profiles: Optional[Dict[str, float]] = None
+) -> float:
     """
-    Create a new profile by merging overrides into a base profile.
+    Calculate the sum of criticality-weighted changes.
     
     Args:
-        base: Base criticality profiles
-        overrides: Dictionary with tag_weights, path_weights, or default_weight
-    
+        changed_paths: List of JSON paths that changed
+        profiles: Optional custom criticality profiles
+        
     Returns:
-        New CriticalityProfiles with merged values
+        Sum of criticality scores for all changed paths
     """
-    merged_tags = base.tag_weights.copy()
-    merged_paths = base.path_weights.copy()
-    default = base.default_weight
-    
-    if "tag_weights" in overrides:
-        merged_tags.update(overrides["tag_weights"])
-    
-    if "path_weights" in overrides:
-        merged_paths.update(overrides["path_weights"])
-    
-    if "default_weight" in overrides:
-        default = overrides["default_weight"]
-    
-    return CriticalityProfiles(
-        tag_weights=merged_tags,
-        path_weights=merged_paths,
-        default_weight=default,
-    )
+    total = 0.0
+    for path in changed_paths:
+        total += get_criticality_for_path(path, profiles)
+    return total

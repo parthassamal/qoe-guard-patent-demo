@@ -1,283 +1,149 @@
 """
-QoE-Aware Risk Scoring Engine.
+QoE Risk Scoring Module.
 
-Computes QoE impact risk (0.0-1.0) based on:
-- Changes on critical paths (weighted by criticality)
-- Type changes on critical paths
-- Numeric delta magnitude on QoE-sensitive fields
-- Runtime signals (latency, errors)
+Computes Quality of Experience risk score (0.0-1.0) based on
+changes to critical API paths and runtime degradation signals.
 """
-from __future__ import annotations
-
-import math
+from typing import Dict, Any, List, Tuple, Optional
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
-
-from .criticality import (
-    CriticalityProfiles,
-    DEFAULT_CRITICALITY_PROFILES,
-    get_path_criticality,
-    is_critical_path,
-)
-
-
-@dataclass
-class QoESignal:
-    """A signal contributing to QoE risk."""
-    path: str
-    signal_type: str
-    value: Any
-    weight: float
-    criticality: float
+import math
 
 
 @dataclass
 class QoERiskResult:
-    """Result of QoE risk scoring."""
-    risk_score: float  # 0.0-1.0
+    """Result of QoE risk calculation."""
+    score: float
     action: str  # PASS, WARN, FAIL
-    top_signals: List[QoESignal]
-    weighted_changes: float
-    critical_type_changes: int
-    numeric_delta_max: float
-    reasons: Dict[str, Any]
+    top_signals: List[Tuple[str, float]] = field(default_factory=list)
 
 
-# Feature weights for QoE risk model
-QOE_FEATURE_WEIGHTS = {
-    "critical_changes": 0.22,
-    "critical_type_changes": 0.20,
-    "numeric_delta_critical": 0.18,
-    "removed_critical": 0.15,
-    "value_changes": 0.10,
-    "added_fields": 0.05,
-    "latency_factor": 0.05,
-    "error_factor": 0.05,
+# Default thresholds
+QOE_THRESHOLDS = {
+    "fail": 0.72,
+    "warn": 0.45,
 }
-
-# Decision thresholds
-QOE_FAIL_THRESHOLD = 0.72
-QOE_WARN_THRESHOLD = 0.45
 
 
 def compute_qoe_risk(
-    changes: List[Dict[str, Any]],
-    profiles: Optional[CriticalityProfiles] = None,
-    runtime_signals: Optional[Dict[str, Any]] = None,
-    fail_threshold: float = QOE_FAIL_THRESHOLD,
-    warn_threshold: float = QOE_WARN_THRESHOLD,
-) -> QoERiskResult:
+    changes_count: int = 0,
+    critical_changes: int = 0,
+    type_changes: int = 0,
+    removed_fields: int = 0,
+    criticality_weighted_sum: float = 0.0,
+    latency_degradation: float = 0.0,
+    error_rate_increase: float = 0.0,
+) -> float:
     """
-    Compute QoE impact risk score.
+    Compute QoE risk score from change and runtime signals.
     
     Args:
-        changes: List of JSON diff changes with path, change_type, before, after
-        profiles: Criticality profiles for weighting
-        runtime_signals: Optional runtime signals (latency_ms, error_rate)
-        fail_threshold: Risk threshold for FAIL decision
-        warn_threshold: Risk threshold for WARN decision
-    
+        changes_count: Total number of changes detected
+        critical_changes: Number of changes to critical paths
+        type_changes: Number of type changes (breaking)
+        removed_fields: Number of removed fields
+        criticality_weighted_sum: Sum of (change_weight * path_criticality)
+        latency_degradation: Percentage increase in latency
+        error_rate_increase: Percentage increase in error rate
+        
     Returns:
-        QoERiskResult with risk score, action, and explanations
+        QoE risk score from 0.0 to 1.0
     """
-    if profiles is None:
-        profiles = DEFAULT_CRITICALITY_PROFILES
+    # Base score from change signals
+    change_score = 0.0
     
-    signals: List[QoESignal] = []
+    # Critical changes have highest impact
+    change_score += min(critical_changes * 0.15, 0.45)
     
-    # Compute features
-    weighted_changes = 0.0
-    critical_type_changes = 0
-    numeric_delta_max = 0.0
-    removed_critical = 0
-    value_changes = 0
-    added_fields = 0
+    # Type changes are breaking
+    change_score += min(type_changes * 0.12, 0.25)
     
-    for change in changes:
-        path = change.get("path", "$")
-        change_type = change.get("change_type", "")
-        before = change.get("before")
-        after = change.get("after")
+    # Removed fields break consumers
+    change_score += min(removed_fields * 0.08, 0.20)
+    
+    # General changes (less impactful)
+    non_critical = max(0, changes_count - critical_changes - type_changes - removed_fields)
+    change_score += min(non_critical * 0.02, 0.10)
+    
+    # Add criticality-weighted component
+    change_score += min(criticality_weighted_sum * 0.3, 0.30)
+    
+    # Runtime degradation signals
+    runtime_score = 0.0
+    runtime_score += min(latency_degradation / 100, 0.15)  # 100% increase = 0.15
+    runtime_score += min(error_rate_increase / 50, 0.20)    # 50% increase = 0.20
+    
+    # Combine scores with diminishing returns
+    total_score = change_score + runtime_score * (1 - change_score * 0.5)
+    
+    return min(max(total_score, 0.0), 1.0)
+
+
+def compute_qoe_action(score: float, thresholds: Optional[Dict[str, float]] = None) -> str:
+    """
+    Determine action based on QoE risk score.
+    
+    Args:
+        score: QoE risk score (0.0-1.0)
+        thresholds: Optional custom thresholds
         
-        # Get criticality weight for this path
-        criticality = get_path_criticality(profiles, path)
-        
-        # Count by type
-        if change_type == "removed":
-            if criticality >= 0.7:
-                removed_critical += 1
-                signals.append(QoESignal(
-                    path=path,
-                    signal_type="removed_critical",
-                    value=before,
-                    weight=0.15,
-                    criticality=criticality,
-                ))
-        
-        elif change_type == "type_changed":
-            if criticality >= 0.5:
-                critical_type_changes += 1
-                signals.append(QoESignal(
-                    path=path,
-                    signal_type="type_change",
-                    value=f"{type(before).__name__} → {type(after).__name__}",
-                    weight=0.20,
-                    criticality=criticality,
-                ))
-        
-        elif change_type == "value_changed":
-            value_changes += 1
-            
-            # Check for numeric delta
-            if isinstance(before, (int, float)) and isinstance(after, (int, float)):
-                delta = abs(after - before)
-                # Normalize by magnitude
-                magnitude = max(abs(before), 1)
-                relative_delta = delta / magnitude
-                
-                if relative_delta > 0.1 and criticality >= 0.5:
-                    numeric_delta_max = max(numeric_delta_max, delta)
-                    signals.append(QoESignal(
-                        path=path,
-                        signal_type="numeric_delta",
-                        value=f"{before} → {after} (Δ{delta:.2f})",
-                        weight=0.18 * criticality,
-                        criticality=criticality,
-                    ))
-            
-            elif criticality >= 0.7:
-                signals.append(QoESignal(
-                    path=path,
-                    signal_type="critical_value_change",
-                    value=f"{before} → {after}",
-                    weight=0.10,
-                    criticality=criticality,
-                ))
-        
-        elif change_type == "added":
-            added_fields += 1
-        
-        # Accumulate weighted changes
-        weighted_changes += criticality
+    Returns:
+        "PASS", "WARN", or "FAIL"
+    """
+    t = thresholds or QOE_THRESHOLDS
     
-    # Runtime signals
-    latency_factor = 0.0
-    error_factor = 0.0
-    
-    if runtime_signals:
-        latency_ms = runtime_signals.get("latency_ms", 0)
-        error_rate = runtime_signals.get("error_rate", 0)
-        
-        # Normalize latency (100ms = 0.1, 1000ms = 1.0)
-        latency_factor = min(latency_ms / 1000, 1.0)
-        error_factor = error_rate
-        
-        if latency_factor > 0.3:
-            signals.append(QoESignal(
-                path="runtime",
-                signal_type="latency",
-                value=f"{latency_ms}ms",
-                weight=0.05,
-                criticality=latency_factor,
-            ))
-        
-        if error_factor > 0.05:
-            signals.append(QoESignal(
-                path="runtime",
-                signal_type="error_rate",
-                value=f"{error_rate:.1%}",
-                weight=0.05,
-                criticality=error_factor,
-            ))
-    
-    # Compute risk score using weighted features
-    features = {
-        "critical_changes": min(weighted_changes / 5, 1.0),  # Normalize by 5
-        "critical_type_changes": min(critical_type_changes / 2, 1.0),
-        "numeric_delta_critical": min(numeric_delta_max / 100, 1.0),  # Normalize by 100
-        "removed_critical": min(removed_critical / 2, 1.0),
-        "value_changes": min(value_changes / 10, 1.0),
-        "added_fields": min(added_fields / 10, 1.0),
-        "latency_factor": latency_factor,
-        "error_factor": error_factor,
-    }
-    
-    # Weighted sum
-    raw_score = sum(
-        QOE_FEATURE_WEIGHTS.get(k, 0) * v
-        for k, v in features.items()
-    )
-    
-    # Apply sigmoid for smoother curve
-    # Shift and scale to make 0.5 input -> ~0.5 output
-    risk_score = 1 / (1 + math.exp(-(raw_score * 6 - 2)))
-    
-    # Apply override rules
-    if critical_type_changes >= 2:
-        risk_score = max(risk_score, 0.75)
-    if removed_critical >= 2:
-        risk_score = max(risk_score, 0.70)
-    
-    # Determine action
-    if risk_score >= fail_threshold:
-        action = "FAIL"
-    elif risk_score >= warn_threshold:
-        action = "WARN"
+    if score >= t.get("fail", 0.72):
+        return "FAIL"
+    elif score >= t.get("warn", 0.45):
+        return "WARN"
     else:
-        action = "PASS"
-    
-    # Sort signals by weight * criticality
-    signals.sort(key=lambda s: s.weight * s.criticality, reverse=True)
-    
-    return QoERiskResult(
-        risk_score=round(risk_score, 4),
-        action=action,
-        top_signals=signals[:5],
-        weighted_changes=round(weighted_changes, 2),
-        critical_type_changes=critical_type_changes,
-        numeric_delta_max=round(numeric_delta_max, 2),
-        reasons={
-            "features": features,
-            "thresholds": {
-                "fail": fail_threshold,
-                "warn": warn_threshold,
-            },
-            "override_applied": critical_type_changes >= 2 or removed_critical >= 2,
-            "top_signals": [
-                {
-                    "path": s.path,
-                    "signal": s.signal_type,
-                    "value": str(s.value),
-                    "weight": round(s.weight, 3),
-                    "criticality": round(s.criticality, 3),
-                }
-                for s in signals[:5]
-            ],
-        },
-    )
+        return "PASS"
 
 
-def compute_qoe_risk_from_diff(
-    baseline: Dict[str, Any],
-    candidate: Dict[str, Any],
-    profiles: Optional[CriticalityProfiles] = None,
+def assess_qoe_risk(
+    changes_count: int = 0,
+    critical_changes: int = 0,
+    type_changes: int = 0,
+    removed_fields: int = 0,
+    criticality_weighted_sum: float = 0.0,
+    latency_degradation: float = 0.0,
+    error_rate_increase: float = 0.0,
 ) -> QoERiskResult:
     """
-    Compute QoE risk by diffing two JSON objects.
+    Full QoE risk assessment with score and action.
     
-    Convenience wrapper that computes the diff first.
+    Returns:
+        QoERiskResult with score, action, and top contributing signals
     """
-    from ..diff import diff_json
+    score = compute_qoe_risk(
+        changes_count=changes_count,
+        critical_changes=critical_changes,
+        type_changes=type_changes,
+        removed_fields=removed_fields,
+        criticality_weighted_sum=criticality_weighted_sum,
+        latency_degradation=latency_degradation,
+        error_rate_increase=error_rate_increase,
+    )
     
-    changes_raw = diff_json(baseline, candidate)
-    changes = [
-        {
-            "path": c.path,
-            "change_type": c.change_type,
-            "before": c.before,
-            "after": c.after,
-        }
-        for c in changes_raw
-    ]
+    action = compute_qoe_action(score)
     
-    return compute_qoe_risk(changes, profiles)
+    # Build signal contributions
+    top_signals = []
+    if critical_changes > 0:
+        top_signals.append(("critical_changes", critical_changes * 0.15))
+    if type_changes > 0:
+        top_signals.append(("type_changes", type_changes * 0.12))
+    if removed_fields > 0:
+        top_signals.append(("removed_fields", removed_fields * 0.08))
+    if latency_degradation > 0:
+        top_signals.append(("latency_degradation", latency_degradation / 100))
+    if error_rate_increase > 0:
+        top_signals.append(("error_rate_increase", error_rate_increase / 50))
+    
+    # Sort by contribution
+    top_signals.sort(key=lambda x: x[1], reverse=True)
+    
+    return QoERiskResult(
+        score=round(score, 4),
+        action=action,
+        top_signals=top_signals[:5]
+    )

@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+
+{% block title %}Help Guide - QoE-Guard Enterprise{% endblock %}
+
+{% block head %}
+<style>
+    .help-container {
+        max-width: 900px;
+    }
+    
+    .help-nav {
+        position: sticky;
+        top: 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+    
+    .help-nav h3 {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+    }
+    
+    .help-nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .help-nav-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 14px;
+        padding: 6px 12px;
+        border-radius: var(--radius-sm);
+        transition: all 0.2s;
+    }
+    
+    .help-nav-links a:hover {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+    
+    .help-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        margin-bottom: 24px;
+    }
+    
+    .help-section h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .help-section h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 24px 0 12px;
+        color: var(--accent-secondary);
+    }
+    
+    .help-section h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 16px 0 8px;
+    }
+    
+    .help-section p {
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        line-height: 1.7;
+    }
+    
+    .help-section ul, .help-section ol {
+        color: var(--text-secondary);
+        margin: 12px 0;
+        padding-left: 24px;
+    }
+    
+    .help-section li {
+        margin-bottom: 8px;
+        line-height: 1.6;
+    }
+    
+    .help-section code {
+        background: var(--bg-tertiary);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--accent-secondary);
+    }
+    
+    .help-section pre {
+        background: var(--bg-tertiary);
+        padding: 16px;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        margin: 16px 0;
+        border: 1px solid var(--border-color);
+    }
+    
+    .help-section pre code {
+        background: none;
+        padding: 0;
+        color: var(--text-primary);
+    }
+    
+    .callout {
+        padding: 16px 20px;
+        border-radius: var(--radius-md);
+        margin: 16px 0;
+        border-left: 4px solid;
+    }
+    
+    .callout-info {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: var(--accent-info);
+    }
+    
+    .callout-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: var(--accent-warning);
+    }
+    
+    .callout-success {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: var(--accent-success);
+    }
+    
+    .callout-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: var(--accent-danger);
+    }
+    
+    .callout-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        margin: 20px 0;
+    }
+    
+    .feature-item {
+        background: var(--bg-tertiary);
+        padding: 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+    }
+    
+    .feature-item h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+    }
+    
+    .feature-item p {
+        margin: 0;
+        font-size: 13px;
+    }
+    
+    .keyboard-shortcut {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .key {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+    }
+    
+    .sample-data-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        margin: 12px 0;
+    }
+    
+    .sample-data-card h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: var(--accent-primary);
+    }
+    
+    .copy-btn {
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        float: right;
+    }
+    
+    .copy-btn:hover {
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">📚 Help Guide</h1>
+    <p class="page-subtitle">Complete documentation for QoE-Guard Enterprise</p>
+</div>
+
+<div class="help-container">
+    <!-- Quick Navigation -->
+    <div class="help-nav">
+        <h3>Quick Navigation</h3>
+        <div class="help-nav-links">
+            <a href="#getting-started">🚀 Getting Started</a>
+            <a href="#dashboard">📊 Dashboard</a>
+            <a href="#inventory">📦 Endpoint Inventory</a>
+            <a href="#validation">✅ Running Validations</a>
+            <a href="#ai-analysis">🧠 AI Analysis</a>
+            <a href="#governance">🛡️ Governance</a>
+            <a href="#scoring">📈 Scoring System</a>
+            <a href="#api">🔌 API Reference</a>
+            <a href="#sample-data">📋 Sample Data</a>
+            <a href="#troubleshooting">🔧 Troubleshooting</a>
+        </div>
+    </div>
+
+    <!-- Getting Started -->
+    <section class="help-section" id="getting-started">
+        <h2>🚀 Getting Started</h2>
+        
+        <h3>What is QoE-Guard?</h3>
+        <p>QoE-Guard is an enterprise API validation system that helps you:</p>
+        <ul>
+            <li><strong>Discover</strong> OpenAPI/Swagger specifications from any URL</li>
+            <li><strong>Validate</strong> API responses against schemas</li>
+            <li><strong>Score</strong> brittleness and QoE (Quality of Experience) risk</li>
+            <li><strong>Detect</strong> drift between specification and implementation</li>
+            <li><strong>Govern</strong> baseline promotions with approvals</li>
+        </ul>
+        
+        <h3>Quick Start Workflow</h3>
+        <ol>
+            <li><strong>Import Swagger</strong> - Go to Endpoint Inventory and enter a Swagger/OpenAPI URL</li>
+            <li><strong>Select Endpoints</strong> - Choose which endpoints to validate</li>
+            <li><strong>Run Validation</strong> - Execute tests against the live API</li>
+            <li><strong>Review Results</strong> - Check scores and recommendations</li>
+            <li><strong>Promote Baselines</strong> - Submit stable results for approval</li>
+        </ol>
+        
+        <div class="callout callout-info">
+            <div class="callout-title">💡 Pro Tip</div>
+            <p>Start with the AI Analysis page to understand how the system analyzes API changes before running full validations.</p>
+        </div>
+    </section>
+
+    <!-- Dashboard -->
+    <section class="help-section" id="dashboard">
+        <h2>📊 Dashboard</h2>
+        
+        <p>The Dashboard provides an overview of your API validation health and metrics.</p>
+        
+        <h3>Key Metrics</h3>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h4>Total Specs</h4>
+                <p>Number of OpenAPI specifications imported into the system.</p>
+            </div>
+            <div class="feature-item">
+                <h4>Endpoints</h4>
+                <p>Total number of API endpoints discovered across all specs.</p>
+            </div>
+            <div class="feature-item">
+                <h4>Validation Runs</h4>
+                <p>Total number of validation jobs executed.</p>
+            </div>
+            <div class="feature-item">
+                <h4>Avg Brittleness</h4>
+                <p>Average brittleness score across all validations (0-100).</p>
+            </div>
+        </div>
+        
+        <h3>Quick Actions</h3>
+        <ul>
+            <li><strong>Import Swagger</strong> - Add a new API specification</li>
+            <li><strong>Run Validation</strong> - Start a new validation job</li>
+            <li><strong>Review Promotions</strong> - Check pending baseline approvals</li>
+        </ul>
+    </section>
+
+    <!-- Endpoint Inventory -->
+    <section class="help-section" id="inventory">
+        <h2>📦 Endpoint Inventory</h2>
+        
+        <h3>Importing a Swagger Specification</h3>
+        <ol>
+            <li>Enter the Swagger UI URL or direct OpenAPI JSON/YAML URL</li>
+            <li>Add authentication headers if required (e.g., Bearer tokens)</li>
+            <li>Click "Discover" to fetch and parse the specification</li>
+        </ol>
+        
+        <h3>Supported URL Formats</h3>
+        <pre><code># Swagger UI pages
+https://api.example.com/docs
+https://api.example.com/swagger-ui.html
+
+# Direct OpenAPI documents
+https://api.example.com/openapi.json
+https://api.example.com/api-docs.yaml
+https://api.example.com/v3/api-docs</code></pre>
+        
+        <h3>Endpoint Selection</h3>
+        <p>Once imported, you can:</p>
+        <ul>
+            <li>Filter by tags, methods, or search text</li>
+            <li>Select individual endpoints or "Select All"</li>
+            <li>View endpoint details (path, method, parameters)</li>
+            <li>Generate cURL commands for testing</li>
+        </ul>
+        
+        <div class="callout callout-warning">
+            <div class="callout-title">⚠️ Authentication</div>
+            <p>For protected APIs, include authentication headers in the format: <code>Authorization: Bearer YOUR_TOKEN</code></p>
+        </div>
+    </section>
+
+    <!-- Running Validations -->
+    <section class="help-section" id="validation">
+        <h2>✅ Running Validations</h2>
+        
+        <h3>Validation Configuration</h3>
+        <ul>
+            <li><strong>Environment</strong> - Select dev/staging/production</li>
+            <li><strong>Concurrency</strong> - Number of parallel requests (default: 5)</li>
+            <li><strong>Rate Limit</strong> - Requests per second per host</li>
+            <li><strong>Safe Methods Only</strong> - Only run GET/HEAD requests</li>
+        </ul>
+        
+        <h3>What Gets Validated</h3>
+        <ol>
+            <li><strong>Schema Conformance</strong> - Response matches OpenAPI schema</li>
+            <li><strong>Status Codes</strong> - Expected vs actual HTTP codes</li>
+            <li><strong>Response Times</strong> - Latency measurements</li>
+            <li><strong>Field Presence</strong> - Required fields are present</li>
+            <li><strong>Type Matching</strong> - Values match expected types</li>
+        </ol>
+        
+        <h3>Understanding Results</h3>
+        <table style="width: 100%; margin: 16px 0;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 8px;">Decision</th>
+                    <th style="text-align: left; padding: 8px;">Meaning</th>
+                    <th style="text-align: left; padding: 8px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-success">PASS</span></td>
+                    <td>All checks passed, low risk</td>
+                    <td>Safe to deploy</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-warning">WARN</span></td>
+                    <td>Some concerns, moderate risk</td>
+                    <td>Review before deploying</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-danger">FAIL</span></td>
+                    <td>Critical issues, high risk</td>
+                    <td>Do not deploy</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- AI Analysis -->
+    <section class="help-section" id="ai-analysis">
+        <h2>🧠 AI Analysis</h2>
+        
+        <p>The AI Analysis module provides intelligent insights using machine learning.</p>
+        
+        <h3>LLM Diff Analysis</h3>
+        <p>Uses large language models (Groq/OpenAI/Claude) to:</p>
+        <ul>
+            <li>Explain changes in natural language</li>
+            <li>Classify breaking vs non-breaking changes</li>
+            <li>Predict downstream impact</li>
+            <li>Generate fix recommendations</li>
+        </ul>
+        
+        <h3>Semantic Drift Detection</h3>
+        <p>Uses embeddings to detect:</p>
+        <ul>
+            <li>Field renames (e.g., <code>playback_url</code> → <code>manifest_url</code>)</li>
+            <li>Semantic equivalences (e.g., "HD" ≈ "1080p")</li>
+            <li>Meaning changes even when structure is similar</li>
+        </ul>
+        
+        <h3>Anomaly Detection</h3>
+        <p>ML algorithms to identify:</p>
+        <ul>
+            <li>Latency spikes and patterns</li>
+            <li>Error rate anomalies</li>
+            <li>Unusual response behaviors</li>
+        </ul>
+        
+        <h3>NLP Classification</h3>
+        <p>Auto-classify endpoints by:</p>
+        <ul>
+            <li><strong>Intent</strong> - playback, auth, metadata, ads, etc.</li>
+            <li><strong>Criticality</strong> - critical, high, medium, low</li>
+            <li><strong>QoE Impact</strong> - Effect on user experience</li>
+        </ul>
+        
+        <div class="callout callout-success">
+            <div class="callout-title">🔑 API Keys Required</div>
+            <p>Set environment variables for AI features: <code>GROQ_API_KEY</code>, <code>OPENAI_API_KEY</code>, or <code>ANTHROPIC_API_KEY</code></p>
+        </div>
+    </section>
+
+    <!-- Governance -->
+    <section class="help-section" id="governance">
+        <h2>🛡️ Governance</h2>
+        
+        <h3>Baseline Management</h3>
+        <p>Baselines are "known good" API responses used as references for validation.</p>
+        
+        <h3>Promotion Workflow</h3>
+        <ol>
+            <li><strong>Developer</strong> runs validation and sees stable results</li>
+            <li><strong>Developer</strong> requests baseline promotion with justification</li>
+            <li><strong>System</strong> checks eligibility (min runs, stability)</li>
+            <li><strong>Approver</strong> reviews and approves/rejects</li>
+            <li><strong>System</strong> updates baseline and logs audit trail</li>
+        </ol>
+        
+        <h3>Roles</h3>
+        <ul>
+            <li><strong>Viewer</strong> - Read-only access to dashboards</li>
+            <li><strong>Developer</strong> - Run validations, request promotions</li>
+            <li><strong>Approver</strong> - Approve/reject baseline promotions</li>
+            <li><strong>Admin</strong> - Full access including settings</li>
+        </ul>
+    </section>
+
+    <!-- Scoring System -->
+    <section class="help-section" id="scoring">
+        <h2>📈 Scoring System</h2>
+        
+        <h3>Brittleness Score (0-100)</h3>
+        <p>Measures how likely an API is to break:</p>
+        
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h4>Contract Complexity (25%)</h4>
+                <p>Schema depth, unions, required fields, constraints</p>
+            </div>
+            <div class="feature-item">
+                <h4>Change Sensitivity (30%)</h4>
+                <p>Removed fields, type changes, enum changes</p>
+            </div>
+            <div class="feature-item">
+                <h4>Runtime Fragility (25%)</h4>
+                <p>Timeout rate, errors, latency variance</p>
+            </div>
+            <div class="feature-item">
+                <h4>Blast Radius (20%)</h4>
+                <p>Criticality, environment, dependencies</p>
+            </div>
+        </div>
+        
+        <h3>QoE Risk Score (0.0-1.0)</h3>
+        <p>Measures impact on user experience:</p>
+        <ul>
+            <li><strong>&lt; 0.45</strong> - PASS: Safe to deploy</li>
+            <li><strong>0.45 - 0.72</strong> - WARN: Review recommended</li>
+            <li><strong>&gt; 0.72</strong> - FAIL: Block deployment</li>
+        </ul>
+        
+        <h3>Criticality Profiles</h3>
+        <pre><code>playback:     1.00  (Critical - affects video playback)
+drm:          0.95  (Critical - affects content protection)
+entitlement:  0.95  (Critical - affects access control)
+ads:          0.85  (High - affects monetization)
+auth:         0.80  (High - affects authentication)
+metadata:     0.40  (Medium - affects discovery)
+analytics:    0.30  (Low - background only)</code></pre>
+    </section>
+
+    <!-- API Reference -->
+    <section class="help-section" id="api">
+        <h2>🔌 API Reference</h2>
+        
+        <p>Full API documentation is available at <a href="/docs" style="color: var(--accent-primary);">/docs</a> (Swagger UI) or <a href="/redoc" style="color: var(--accent-primary);">/redoc</a> (ReDoc).</p>
+        
+        <h3>Key Endpoints</h3>
+        <pre><code># Authentication
+POST /auth/register     # Create account
+POST /auth/login        # Get JWT token
+
+# Specifications
+POST /specs/discover    # Import OpenAPI spec
+GET  /specs/            # List all specs
+GET  /specs/{id}/operations  # Get operations
+
+# Validations
+POST /validations/      # Start validation job
+GET  /validations/{id}  # Get results
+
+# AI Analysis
+GET  /ai/status         # Check AI availability
+POST /ai/analyze-diff   # LLM diff analysis
+POST /ai/semantic-drift # Semantic drift detection
+POST /ai/detect-anomalies  # Anomaly detection
+POST /ai/classify-endpoint # NLP classification
+POST /ai/ml-score       # ML risk scoring
+
+# Governance
+GET  /governance/pending  # Pending approvals
+POST /governance/{id}/approve  # Approve
+POST /governance/{id}/reject   # Reject</code></pre>
+    </section>
+
+    <!-- Sample Data -->
+    <section class="help-section" id="sample-data">
+        <h2>📋 Sample Data for Testing</h2>
+        
+        <h3>Public OpenAPI URLs</h3>
+        <p>Use these URLs to test the Swagger import feature:</p>
+        
+        <div class="sample-data-card">
+            <button class="copy-btn" onclick="copyToClipboard('https://petstore3.swagger.io/api/v3/openapi.json')">Copy</button>
+            <h4>Swagger Petstore (Official Demo)</h4>
+            <code>https://petstore3.swagger.io/api/v3/openapi.json</code>
+            <p style="margin-top: 8px; font-size: 13px;">Classic demo API with CRUD operations for pets, store, users.</p>
+        </div>
+        
+        <div class="sample-data-card">
+            <button class="copy-btn" onclick="copyToClipboard('https://api.apis.guru/v2/openapi.yaml')">Copy</button>
+            <h4>APIs.guru Directory</h4>
+            <code>https://api.apis.guru/v2/openapi.yaml</code>
+            <p style="margin-top: 8px; font-size: 13px;">Directory of public APIs with metadata.</p>
+        </div>
+        
+        <div class="sample-data-card">
+            <button class="copy-btn" onclick="copyToClipboard('https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json')">Copy</button>
+            <h4>GitHub REST API</h4>
+            <code>https://raw.githubusercontent.com/github/rest-api-description/main/descriptions/api.github.com/api.github.com.json</code>
+            <p style="margin-top: 8px; font-size: 13px;">Complete GitHub API specification.</p>
+        </div>
+        
+        <h3>Sample JSON for AI Analysis</h3>
+        
+        <div class="sample-data-card">
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('baseline-json').innerText)">Copy</button>
+            <h4>Baseline JSON (Streaming API Response)</h4>
+            <pre id="baseline-json"><code>{
+  "playback": {
+    "manifestUrl": "https://cdn.example.com/stream.m3u8",
+    "quality": "HD",
+    "maxBitrateKbps": 8000
+  },
+  "drm": {
+    "licenseUrl": "https://drm.example.com/license",
+    "type": "widevine"
+  },
+  "entitlement": {
+    "allowed": true,
+    "tier": "premium"
+  }
+}</code></pre>
+        </div>
+        
+        <div class="sample-data-card">
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('candidate-json').innerText)">Copy</button>
+            <h4>Candidate JSON (With Breaking Changes)</h4>
+            <pre id="candidate-json"><code>{
+  "playback": {
+    "url": "https://cdn-new.example.com/manifest.mpd",
+    "resolution": "1080p",
+    "maxBitrate": 6000
+  },
+  "drm": {
+    "license": "https://drm-v2.example.com/license",
+    "provider": "widevine"
+  },
+  "entitlement": {
+    "granted": true,
+    "subscriptionLevel": "gold"
+  },
+  "ads": {
+    "enabled": true,
+    "prerollUrl": "https://ads.example.com/preroll"
+  }
+}</code></pre>
+        </div>
+        
+        <h3>Sample Runtime Metrics for Anomaly Detection</h3>
+        <div class="sample-data-card">
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('metrics-json').innerText)">Copy</button>
+            <h4>Runtime Metrics (JSON Array)</h4>
+            <pre id="metrics-json"><code>[
+  {"latency_ms": 145, "status_code": 200, "timestamp": "2025-01-15T10:00:00Z", "endpoint": "/api/playback"},
+  {"latency_ms": 132, "status_code": 200, "timestamp": "2025-01-15T10:00:05Z", "endpoint": "/api/playback"},
+  {"latency_ms": 5200, "status_code": 500, "timestamp": "2025-01-15T10:00:10Z", "endpoint": "/api/playback"},
+  {"latency_ms": 4800, "status_code": 503, "timestamp": "2025-01-15T10:00:15Z", "endpoint": "/api/playback"},
+  {"latency_ms": 156, "status_code": 200, "timestamp": "2025-01-15T10:00:20Z", "endpoint": "/api/playback"},
+  {"latency_ms": 178, "status_code": 200, "timestamp": "2025-01-15T10:00:25Z", "endpoint": "/api/entitlement"},
+  {"latency_ms": 3500, "status_code": 504, "timestamp": "2025-01-15T10:00:30Z", "endpoint": "/api/drm"}
+]</code></pre>
+        </div>
+        
+        <h3>Sample Changes for ML Scoring</h3>
+        <div class="sample-data-card">
+            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('changes-json').innerText)">Copy</button>
+            <h4>Detected Changes (JSON Array)</h4>
+            <pre id="changes-json"><code>[
+  {"change_type": "removed", "path": "$.drm.licenseUrl"},
+  {"change_type": "added", "path": "$.drm.license"},
+  {"change_type": "type_changed", "path": "$.playback.maxBitrateKbps", "old_value": "number", "new_value": "string"},
+  {"change_type": "value_changed", "path": "$.entitlement.tier", "old_value": "premium", "new_value": "gold"},
+  {"change_type": "added", "path": "$.ads"}
+]</code></pre>
+        </div>
+    </section>
+
+    <!-- Troubleshooting -->
+    <section class="help-section" id="troubleshooting">
+        <h2>🔧 Troubleshooting</h2>
+        
+        <h3>Common Issues</h3>
+        
+        <h4>❌ "Failed to discover OpenAPI spec"</h4>
+        <ul>
+            <li>Check if the URL is accessible</li>
+            <li>Verify authentication headers are correct</li>
+            <li>Try the direct OpenAPI JSON URL instead of Swagger UI</li>
+            <li>Check CORS settings if accessing from browser</li>
+        </ul>
+        
+        <h4>❌ "AI features unavailable"</h4>
+        <ul>
+            <li>Set at least one API key: <code>GROQ_API_KEY</code>, <code>OPENAI_API_KEY</code>, or <code>ANTHROPIC_API_KEY</code></li>
+            <li>Install AI dependencies: <code>pip install groq openai anthropic sentence-transformers</code></li>
+            <li>Check the <code>/ai/status</code> endpoint for details</li>
+        </ul>
+        
+        <h4>❌ "Validation timeout"</h4>
+        <ul>
+            <li>Reduce concurrency level</li>
+            <li>Increase timeout setting</li>
+            <li>Check target API availability</li>
+            <li>Use "Safe methods only" option</li>
+        </ul>
+        
+        <h4>❌ "High brittleness score"</h4>
+        <ul>
+            <li>Review removed/changed fields</li>
+            <li>Check type changes in responses</li>
+            <li>Verify required fields are present</li>
+            <li>Consider updating baselines if changes are intentional</li>
+        </ul>
+        
+        <h3>Getting Help</h3>
+        <ul>
+            <li>📖 Full API docs: <a href="/docs">/docs</a></li>
+            <li>🔍 Health check: <a href="/health">/health</a></li>
+            <li>📊 AI status: <a href="/ai/status">/ai/status</a></li>
+        </ul>
+        
+        <div class="callout callout-info">
+            <div class="callout-title">💬 Need More Help?</div>
+            <p>Contact the development team or check the README for additional documentation.</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show brief feedback
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = originalText, 1500);
+        });
+    }
+    
+    // Smooth scroll for anchor links
+    document.querySelectorAll('.help-nav-links a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = document.querySelector(link.getAttribute('href'));
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+</script>
+{% endblock %}
