@@ -193,7 +193,7 @@ class TestFeatureExtractionAllure(unittest.TestCase):
     
     @allure.story("Critical Change Detection")
     @allure.title("Critical changes should be counted in features")
-    @allure.severity(allure.severity_level.HIGH)
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_critical_changes_counted(self):
         """Critical changes should be counted in features."""
         changes = [

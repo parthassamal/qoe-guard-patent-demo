@@ -10,17 +10,41 @@ Tests cover:
 import unittest
 import sys
 import os
+import json
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    import allure
+    ALLURE_AVAILABLE = True
+except ImportError:
+    ALLURE_AVAILABLE = False
+    class allure:
+        @staticmethod
+        def feature(name): return lambda f: f
+        @staticmethod
+        def story(name): return lambda f: f
+        @staticmethod
+        def step(name): return lambda f: f
+        @staticmethod
+        def title(name): return lambda f: f
+        @staticmethod
+        def severity(level): return lambda f: f
+        @staticmethod
+        def attach(body, name, attachment_type): pass
 
 from qoe_guard.diff import json_diff, extract_features
 from qoe_guard.model import DiffResult, FeatureVector, RiskAssessment
 
 
+@allure.feature("JSON Diff Engine")
 class TestJsonDiff(unittest.TestCase):
     """Test cases for JSON diff engine."""
     
+    @allure.story("Basic Diff Operations")
+    @allure.title("Identical JSON should produce no changes")
+    @allure.severity(allure.severity_level.TRIVIAL)
     def test_identical_json_returns_no_changes(self):
         """Identical JSON objects should produce no changes."""
         obj = {"key": "value", "nested": {"a": 1}}
