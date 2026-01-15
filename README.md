@@ -678,18 +678,68 @@ python -m qoe_guard.cli validate \
 
 ## Testing
 
+### Running Tests
+
 ```bash
 # Activate virtual environment
 source .venv/bin/activate
 
-# Run unit tests
-python -m pytest tests/ -v
+# Run all tests
+pytest tests/ -v
 
+# Run specific test suites
+pytest tests/test_unit.py -v          # Unit tests
+pytest tests/test_integration.py -v  # Integration tests
+pytest tests/test_smoke.py -v        # Smoke tests
+```
+
+### Allure Reporting
+
+QoE-Guard uses [Allure Report](https://allurereport.org) for comprehensive test reporting with detailed visualizations, attachments, and test history.
+
+**Quick Start:**
+
+```bash
+# Install Allure (macOS)
+brew install allure
+
+# Run tests and generate report
+./scripts/run_tests_with_allure.sh
+
+# Or run tests and open report in browser
+./scripts/run_tests_with_allure.sh --serve
+```
+
+**Manual Steps:**
+
+```bash
+# 1. Run tests (results saved to allure-results/)
+pytest tests/ -v
+
+# 2. Generate report
+allure generate allure-results -o allure-report --clean
+
+# 3. Open report
+allure open allure-report
+```
+
+**Features:**
+- ✅ Step-by-step test execution breakdown
+- ✅ JSON attachments (baseline/candidate responses, change details)
+- ✅ Feature/story grouping for better organization
+- ✅ Severity levels and test history
+- ✅ CI/CD integration ready
+
+See [ALLURE_REPORTING.md](ALLURE_REPORTING.md) for complete documentation.
+
+### Test Coverage
+
+```bash
 # Test scoring modules
 python -c "
 from qoe_guard.scoring import compute_brittleness_score, compute_qoe_risk
-print('Brittleness:', compute_brittleness_score(tag_criticality=0.8).score)
-print('QoE Risk:', compute_qoe_risk([]).risk_score)
+print('Brittleness:', compute_brittleness_score(contract_complexity=0.5, change_sensitivity=0.3).score)
+print('QoE Risk:', compute_qoe_risk(changes_count=5, critical_changes=2).score)
 "
 ```
 

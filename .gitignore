@@ -9,3 +9,7 @@ README_PATENT_DEMO.md
 __pycache__/
 .venv/
 *.db
+
+# Allure Reports
+allure-results/
+allure-report/

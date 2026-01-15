@@ -31,6 +31,7 @@ python-dotenv==1.0.1
 # Testing
 pytest==8.3.4
 pytest-asyncio==0.23.3
+allure-pytest==2.13.2
 
 # ===========================================
 # AI/ML/NLP Libraries

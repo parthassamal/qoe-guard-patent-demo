@@ -18,6 +18,54 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
+  test:
+    name: Run Tests with Allure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Install Allure
+        uses: simple-elf/allure-report-action@master
+        with:
+          allure_version: 2.36.0
+      
+      - name: Run tests with Allure
+        run: |
+          pytest tests/ -v --alluredir=allure-results
+      
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          allure generate allure-results -o allure-report --clean
+      
+      - name: Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report/
+          retention-days: 30
+      
+      - name: Publish Allure Report
+        if: always()
+        uses: simple-elf/allure-report-action@master
+        with:
+          allure_results: allure-results
+          allure_history: allure-history
+          keep_reports: 20
+
   validate:
     name: QoE Validation
     runs-on: ubuntu-latest
