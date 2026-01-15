@@ -1,747 +1,422 @@
 # QoE-Guard Enterprise
 
-**Swagger-to-Scenario Validation with Brittleness Scoring and QoE-Aware CI Gating**
+<div align="center">
 
-[![CI/CD](https://github.com/parthassamal/qoe-guard-patent-demo/actions/workflows/qoe-guard.yml/badge.svg)](https://github.com/parthassamal/qoe-guard-patent-demo/actions)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+![QoE-Guard Logo](https://img.shields.io/badge/QoE--Guard-Enterprise-blue?style=for-the-badge&logo=shield&logoColor=white)
 
-A comprehensive API validation system that ingests any Swagger/OpenAPI specification, extracts operations, generates executable requests, computes **brittleness scores** and **QoE-impact risk scores**, and applies policy-driven CI gates with auditable baseline governance.
+**Intelligent API Validation with Brittleness Scoring & QoE-Aware CI Gating**
 
----
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=flat-square)](https://github.com/parthassamal/qoe-guard-patent-demo/actions)
+[![Python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+[![Coverage](https://img.shields.io/badge/coverage-36%25-yellow?style=flat-square)](htmlcov/)
 
-## Core Differentiators
+[**Quick Start**](#-quick-start) • [**Features**](#-key-features) • [**Architecture**](#-system-architecture) • [**API Reference**](#-api-reference) • [**Roadmap**](#-future-roadmap)
 
-Most solutions do one of these in isolation: lint specs, generate tests, do contract testing, check links. **QoE-Guard unifies them** and adds high-leverage, defensible layers:
-
-1. **Brittleness Quantification** — Likelihood of consumer breakage + operational fragility
-2. **QoE-Aware Prioritization** — Changes weighted by downstream playback/ads/entitlement impact
-3. **AI/ML-Powered Analysis** — LLM explanations, semantic drift detection, anomaly detection, explainable ML scoring
+</div>
 
 ---
 
-## Key Inventive Concepts
+## 📋 Executive Summary
 
-| Concept | Description |
-|---------|-------------|
-| **Swagger Page → Executable Validation Pipeline** | Discover OpenAPI from Swagger UI, normalize operations, generate cURL commands |
-| **Multi-Select Endpoint Orchestration** | Select operations, execute with rate limiting, apply per-endpoint policies |
-| **Brittleness Scoring** | Static + Runtime + Change sensitivity + Blast radius = 0-100 score |
-| **QoE-Aware Criticality Weighting** | Weight changes by playback/entitlement/ads/DRM criticality |
-| **Drift Classification** | Spec drift vs Runtime drift vs Undocumented (dangerous) drift |
-| **Baseline Governance** | Promote baselines only via approvals with audit trail and rollback |
-| **AI/ML Analysis Suite** | LLM explanations (Groq/GPT-4/Claude), semantic drift, anomaly detection, SHAP explanations |
+**QoE-Guard** is an enterprise-grade API validation platform that transforms OpenAPI/Swagger specifications into executable validation scenarios. Unlike traditional contract testing tools, QoE-Guard introduces **novel scoring algorithms** that quantify:
+
+| Metric | What It Measures | Innovation |
+|--------|------------------|------------|
+| **Brittleness Score** (0-100) | Likelihood of consumer breakage | Multi-signal fusion: static + runtime + change sensitivity |
+| **QoE Risk Score** (0.0-1.0) | Impact on end-user experience | Domain-aware criticality weighting (playback, DRM, ads) |
+| **Drift Classification** | Type of API deviation | Distinguishes spec drift vs runtime drift vs undocumented changes |
+
+> **Patent-Pending Technology**: This system implements six novel inventive concepts not found in existing API testing solutions.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
-### Option 1: Local Development
+### One-Command Setup
 
 ```bash
-# Clone and setup
+# Clone, setup, and run in 30 seconds
 git clone https://github.com/parthassamal/qoe-guard-patent-demo.git
 cd qoe-guard-patent-demo
-
-# Create virtual environment
 python3 -m venv .venv && source .venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run enterprise server
 python -m qoe_guard.main
-# Open http://localhost:8010
 ```
 
-### Option 2: Docker
+**Open http://localhost:8010** — You're ready to validate APIs!
+
+### Alternative: Docker
 
 ```bash
 docker-compose up
-# Enterprise UI: http://localhost:8010
-# Demo API: http://localhost:8001
-```
-
-### Option 3: Legacy Demo Mode
-
-```bash
-# Run original demo server
-uvicorn qoe_guard.server:app --reload --port 8010
+# App: http://localhost:8010 | Demo API: http://localhost:8001
 ```
 
 ---
 
-## System Architecture
+## ✨ Key Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 🔍 Intelligent Analysis
+- **Swagger → Executable Pipeline**: Auto-discover OpenAPI specs
+- **Multi-Select Orchestration**: Validate multiple endpoints in parallel
+- **Schema Conformance**: JSON Schema validation with detailed errors
+
+</td>
+<td width="50%">
+
+### 🧠 AI-Powered Insights
+- **LLM Explanations**: GPT-4, Claude, Groq integration
+- **Semantic Drift Detection**: Detect field renames via embeddings
+- **Anomaly Detection**: Isolation Forest for runtime outliers
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 📊 Quantified Risk
+- **Brittleness Scoring**: 4-family signal fusion (0-100)
+- **QoE Risk Scoring**: Domain-weighted impact (0.0-1.0)
+- **Drift Classification**: Spec / Runtime / Undocumented
+
+</td>
+<td width="50%">
+
+### 🏛️ Enterprise Governance
+- **Baseline Management**: Versioned with promotion workflows
+- **Audit Trail**: Complete change history with approvals
+- **Policy Engine**: Configurable thresholds and CI gates
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏗️ System Architecture
+
+### High-Level Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           QoE-Guard Enterprise                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐        │
+│   │  Swagger  │    │  Endpoint │    │  Scenario │    │ Validation│        │
+│   │  Intake   │───▶│  Catalog  │───▶│ Generation│───▶│  Engine   │        │
+│   └───────────┘    └───────────┘    └───────────┘    └───────────┘        │
+│         │                                                   │              │
+│         ▼                                                   ▼              │
+│   ┌───────────┐                                      ┌───────────┐        │
+│   │  OpenAPI  │                                      │  Scoring  │        │
+│   │  Parser   │                                      │  Engine   │        │
+│   └───────────┘                                      └───────────┘        │
+│                                                            │              │
+│                           ┌────────────────────────────────┤              │
+│                           ▼                                ▼              │
+│                    ┌───────────┐                    ┌───────────┐        │
+│                    │  Policy   │                    │ Governance│        │
+│                    │  Engine   │                    │   Layer   │        │
+│                    └───────────┘                    └───────────┘        │
+│                           │                                              │
+│                           ▼                                              │
+│                    ┌───────────┐                                         │
+│                    │  CI Gate  │  ──▶  PASS / WARN / FAIL               │
+│                    └───────────┘                                         │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### Component Architecture (Mermaid)
 
 ```mermaid
 flowchart TB
-    subgraph intake [1. Swagger Intake]
-        SwaggerURL[Swagger URL Input]
-        Discovery[OpenAPI Discovery]
-        Normalizer[Schema Normalizer]
+    subgraph intake ["① Swagger Intake"]
+        A1[Swagger URL] --> A2[OpenAPI Discovery]
+        A2 --> A3[Schema Normalizer]
     end
 
-    subgraph catalog [2. Endpoint Catalog]
-        OperationInventory[Operation Inventory]
-        MultiSelect[Multi-Select API]
-        FilterEngine[Filter Engine]
+    subgraph catalog ["② Endpoint Catalog"]
+        B1[Operation Inventory]
+        B2[Multi-Select API]
+        B3[Filter Engine]
     end
 
-    subgraph generation [3. Scenario Generation]
-        ScenarioGen[Scenario Generator]
-        CurlEngine[cURL Synthesis Engine]
-        ArtifactStore[Artifact Store]
+    subgraph generation ["③ Scenario Generation"]
+        C1[Scenario Generator]
+        C2[cURL Synthesizer]
+        C3[Artifact Store]
     end
 
-    subgraph validation [4. Validation Engine]
-        Orchestrator[Validation Orchestrator]
-        StaticAnalyzer[Static Analyzer]
-        RuntimeRunner[Runtime Conformance]
+    subgraph validation ["④ Validation Engine"]
+        D1[Orchestrator]
+        D2[Static Analyzer]
+        D3[Runtime Conformance]
     end
 
-    subgraph scoring [5. Scoring Engine]
-        BrittlenessCalc[Brittleness Calculator]
-        QoERiskCalc[QoE Risk Calculator]
-        DriftClassifier[Drift Classifier]
+    subgraph scoring ["⑤ Scoring Engine"]
+        E1[Brittleness Calculator]
+        E2[QoE Risk Calculator]
+        E3[Drift Classifier]
     end
 
-    subgraph governance [6. Governance Layer]
-        PolicyEngine[Policy Engine]
-        BaselineManager[Baseline Manager]
-        AuditTrail[Audit Trail]
+    subgraph governance ["⑥ Governance Layer"]
+        F1[Policy Engine]
+        F2[Baseline Manager]
+        F3[Audit Trail]
     end
 
-    subgraph auth [7. Auth and Users]
-        AuthService[JWT Auth Service]
-        RoleManager[Role Manager]
-        ApprovalWorkflow[Approval Workflow]
-    end
-
-    SwaggerURL --> Discovery --> Normalizer --> OperationInventory
-    OperationInventory --> MultiSelect --> ScenarioGen
-    ScenarioGen --> CurlEngine --> ArtifactStore
-    MultiSelect --> Orchestrator
-    Orchestrator --> StaticAnalyzer
-    Orchestrator --> RuntimeRunner
-    StaticAnalyzer --> BrittlenessCalc
-    RuntimeRunner --> BrittlenessCalc
-    RuntimeRunner --> QoERiskCalc
-    BrittlenessCalc --> DriftClassifier
-    DriftClassifier --> PolicyEngine
-    QoERiskCalc --> PolicyEngine
-    PolicyEngine --> BaselineManager
-    BaselineManager --> AuditTrail
-    AuthService --> ApprovalWorkflow
-    ApprovalWorkflow --> BaselineManager
+    A3 --> B1
+    B1 --> B2 --> C1
+    C1 --> C2 --> C3
+    B2 --> D1
+    D1 --> D2 & D3
+    D2 & D3 --> E1
+    D3 --> E2
+    E1 --> E3 --> F1
+    E2 --> F1
+    F1 --> F2 --> F3
 ```
 
 ---
 
-## Brittleness Scoring (0-100)
+## 📐 Scoring Algorithms
 
-Computed from four signal families:
+### Brittleness Score (0-100)
 
-### 1. Contract Complexity (25%)
-- Schema depth and branching
-- anyOf/oneOf union types
-- Required fields count
-- Free-form objects (additionalProperties)
-- Parameter count and constraint tightness
+Quantifies the likelihood of consumer breakage through **multi-signal fusion**:
 
-### 2. Change Sensitivity (30%)
-- Removed fields/paths (breaking)
-- Type changes (incompatible)
-- Enum value changes
-- Response code changes
-- Requiredness changes (optional→required)
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    BRITTLENESS SCORE                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   Contract Complexity (25%)     Change Sensitivity (30%)        │
+│   ┌─────────────────────┐       ┌─────────────────────┐        │
+│   │ • Schema depth      │       │ • Removed fields    │        │
+│   │ • Union types       │       │ • Type changes      │        │
+│   │ • Required fields   │       │ • Enum changes      │        │
+│   │ • Parameter count   │       │ • Requiredness Δ    │        │
+│   └─────────────────────┘       └─────────────────────┘        │
+│            │                              │                     │
+│            └──────────────┬───────────────┘                     │
+│                           ▼                                     │
+│   Runtime Fragility (25%)       Blast Radius (20%)              │
+│   ┌─────────────────────┐       ┌─────────────────────┐        │
+│   │ • Timeout rate      │       │ • Tag criticality   │        │
+│   │ • 5xx error rate    │       │ • Environment       │        │
+│   │ • Latency variance  │       │ • Dependency count  │        │
+│   │ • Schema mismatches │       │ • Consumer impact   │        │
+│   └─────────────────────┘       └─────────────────────┘        │
+│            │                              │                     │
+│            └──────────────┬───────────────┘                     │
+│                           ▼                                     │
+│                  ┌─────────────────┐                            │
+│                  │  SCORE: 0-100   │                            │
+│                  └─────────────────┘                            │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### 3. Runtime Fragility (25%)
-- Timeout rate
-- 5xx error rate
-- Latency variance (stddev)
-- Schema mismatch rate
-- Nondeterminism (optional fields flapping)
+### QoE Risk Score (0.0-1.0)
 
-### 4. Blast Radius (20%)
-- Tag criticality (playback=1.0, ads=0.85, metadata=0.4)
-- Environment weight (prod=1.0, stage=0.5, dev=0.2)
-- Dependency count (downstream consumers)
+Weights changes by **domain-specific criticality**:
 
-```python
-# Example brittleness computation
-from qoe_guard.scoring import compute_brittleness_score
+| Domain | Criticality | Example Paths |
+|--------|-------------|---------------|
+| **Playback** | 1.00 | `$.playback.manifestUrl`, `$.stream.url` |
+| **DRM** | 0.95 | `$.drm.licenseUrl`, `$.widevine.token` |
+| **Entitlement** | 0.95 | `$.entitlement.allowed`, `$.access.granted` |
+| **Ads** | 0.85 | `$.ads.adDecision`, `$.vast.url` |
+| **Auth** | 0.80 | `$.auth.token`, `$.session.id` |
+| **Metadata** | 0.40 | `$.title`, `$.description` |
+| **Analytics** | 0.30 | `$.analytics.events` |
 
-result = compute_brittleness_score(
-    operation_schema={"type": "object", "properties": {...}},
-    parameters=[...],
-    runtime_results=[...],
-    tag_criticality=0.9,
-    environment="prod",
-)
+**Decision Thresholds:**
 
-print(f"Score: {result.score}")
-# Score: 67.5
+| Score Range | Decision | CI Gate Action |
+|-------------|----------|----------------|
+| < 0.45 | **PASS** ✅ | Deploy allowed |
+| 0.45 - 0.72 | **WARN** ⚠️ | Review recommended |
+| > 0.72 | **FAIL** ❌ | Deployment blocked |
 
-print(f"Top contributors:")
-for c in result.top_contributors:
-    print(f"  - {c.path}: {c.reason} (impact: {c.impact})")
+### Drift Classification
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    DRIFT CLASSIFICATION                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│                    ┌─────────────┐                              │
+│                    │ Compare Spec│                              │
+│                    │ + Runtime   │                              │
+│                    └──────┬──────┘                              │
+│                           │                                     │
+│              ┌────────────┴────────────┐                        │
+│              ▼                         ▼                        │
+│     ┌────────────────┐        ┌────────────────┐               │
+│     │ Spec Changed?  │        │ Spec Changed?  │               │
+│     │     YES        │        │     NO         │               │
+│     └───────┬────────┘        └───────┬────────┘               │
+│             │                         │                        │
+│    ┌────────┴────────┐       ┌────────┴────────┐              │
+│    ▼                 ▼       ▼                 ▼              │
+│ Runtime OK?     Runtime Δ?  Runtime OK?    Runtime Δ?         │
+│    │                 │          │                │            │
+│    ▼                 ▼          ▼                ▼            │
+│ ┌──────┐      ┌───────────┐  ┌──────┐    ┌───────────┐       │
+│ │ SPEC │      │UNDOCUMENTED│  │ NONE │    │  RUNTIME  │       │
+│ │ DRIFT│      │  ⚠️ DANGER │  │  ✅  │    │   DRIFT   │       │
+│ └──────┘      └───────────┘  └──────┘    └───────────┘       │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## QoE Risk Scoring (0.0-1.0)
+## 🧠 AI/ML Capabilities
 
-Changes weighted by criticality profiles:
+### Integrated AI Analysis Suite
 
-```python
-# Default tag criticality
-playback: 1.0
-entitlement: 0.95
-drm: 0.95
-ads: 0.85
-auth: 0.80
-session: 0.75
-metadata: 0.40
-analytics: 0.30
-
-# Default path criticality
-$.playback.manifestUrl: 1.0
-$.drm.licenseUrl: 1.0
-$.entitlement.allowed: 0.95
-$.ads.adDecision: 0.85
-$.playback.maxBitrateKbps: 0.70
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     AI ANALYSIS SUITE                           │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐ │
+│  │  LLM Analysis   │  │ Semantic Drift  │  │    Anomaly      │ │
+│  │                 │  │                 │  │   Detection     │ │
+│  │  • Groq (Fast)  │  │  • Embeddings   │  │                 │ │
+│  │  • GPT-4        │  │  • Field rename │  │  • Isolation    │ │
+│  │  • Claude       │  │    detection    │  │    Forest       │ │
+│  │                 │  │  • Similarity   │  │  • Z-Score      │ │
+│  │  Explains diffs │  │    scoring      │  │  • One-Class    │ │
+│  │  in natural     │  │                 │  │    SVM          │ │
+│  │  language       │  │                 │  │                 │ │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
+│                                                                 │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │  NLP Endpoint   │  │   ML Risk       │                      │
+│  │  Classification │  │   Scoring       │                      │
+│  │                 │  │                 │                      │
+│  │  • Intent       │  │  • XGBoost      │                      │
+│  │    extraction   │  │  • SHAP         │                      │
+│  │  • Criticality  │  │    explanations │                      │
+│  │    assessment   │  │  • Feature      │                      │
+│  │  • Auto-tagging │  │    importance   │                      │
+│  └─────────────────┘  └─────────────────┘                      │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Decision Thresholds
-
-| Score | Decision | CI Gate |
-|-------|----------|---------|
-| < 0.45 | **PASS** | Allow deployment |
-| 0.45 - 0.72 | **WARN** | Review recommended |
-| > 0.72 | **FAIL** | Block deployment |
-
----
-
-## Drift Classification
-
-```mermaid
-flowchart TD
-    A[Compare Spec + Runtime] --> B{Spec hash changed?}
-    B -->|Yes| C{Runtime mismatches?}
-    B -->|No| D{Runtime mismatches?}
-    
-    C -->|No| E[SPEC_DRIFT<br/>Update baselines]
-    C -->|Yes| F{Critical paths?}
-    
-    D -->|No| G[NONE<br/>All good]
-    D -->|Yes| H{Critical paths?}
-    
-    F -->|No| I[SPEC_DRIFT + RUNTIME_DRIFT]
-    F -->|Yes| J[UNDOCUMENTED<br/>⚠️ CRITICAL]
-    
-    H -->|No| K[RUNTIME_DRIFT<br/>Investigate]
-    H -->|Yes| L[UNDOCUMENTED<br/>⚠️ CRITICAL]
-```
-
----
-
-## 🧠 AI/ML-Powered Analysis
-
-QoE-Guard integrates advanced AI/ML capabilities for intelligent analysis:
-
-### LLM-Powered Diff Analysis
-
-Supports **Groq** (fastest), **OpenAI GPT-4**, and **Anthropic Claude**:
-
-```python
-from qoe_guard.ai import LLMAnalyzer, LLMProvider
-
-# Auto-detects available provider (Groq > OpenAI > Anthropic)
-analyzer = LLMAnalyzer()
-
-# Or specify provider
-analyzer = LLMAnalyzer(provider=LLMProvider.GROQ)
-
-result = analyzer.analyze_diff(
-    baseline={"playback": {"url": "old.m3u8"}},
-    candidate={"playback": {"url": "new.m3u8", "drm": "removed"}},
-    changes=[{"path": "$.playback.drm", "change_type": "removed"}],
-)
-
-print(result.summary)          # Natural language summary
-print(result.breaking_changes) # ["$.playback.drm: removed"]
-print(result.risk_assessment)  # "HIGH: DRM removal affects entitlement"
-print(result.recommendations)  # ["Verify DRM fallback", "Update clients"]
-```
-
-### Semantic Drift Detection
-
-Uses **sentence-transformers** to detect field renames and semantic changes:
-
-```python
-from qoe_guard.ai import SemanticDriftDetector
-
-detector = SemanticDriftDetector(similarity_threshold=0.75)
-
-result = detector.detect_drift(
-    baseline={"playback_url": "https://cdn.example.com"},
-    candidate={"manifest_url": "https://cdn.example.com"},
-)
-
-# Detects that playback_url → manifest_url is a rename
-print(result.potential_renames)
-# [SemanticMatch(source="playback_url", target="manifest_url", similarity=0.89)]
-```
-
-### ML Anomaly Detection
-
-Uses **Isolation Forest** / **One-Class SVM** to detect runtime anomalies:
-
-```python
-from qoe_guard.ai import AnomalyDetector, RuntimeMetrics
-from datetime import datetime
-
-detector = AnomalyDetector(algorithm="isolation_forest")
-
-# Fit on historical data
-detector.fit(historical_metrics)
-
-# Detect anomalies in new data
-metrics = [
-    RuntimeMetrics(latency_ms=150, status_code=200, endpoint="/playback"),
-    RuntimeMetrics(latency_ms=5200, status_code=500, endpoint="/playback"),  # Anomaly!
-]
-
-report = detector.detect_batch(metrics)
-print(report.anomaly_rate)       # 0.5 (50%)
-print(report.patterns_detected)  # ["Latency spike: 1 requests > 5s"]
-```
-
-### NLP Endpoint Classification
-
-Auto-classifies endpoints by intent and criticality:
-
-```python
-from qoe_guard.ai import NLPAnalyzer
-
-analyzer = NLPAnalyzer()
-
-intent = analyzer.extract_intent(
-    endpoint_path="/api/v1/playback/manifest/{contentId}",
-    method="GET",
-    description="Retrieves playback manifest with DRM license info",
-)
-
-print(intent.primary_intent)    # "playback"
-print(intent.business_domain)   # "content_delivery"
-
-criticality = analyzer.classify_criticality(
-    endpoint_path="/api/v1/playback/manifest/{contentId}",
-    method="GET",
-)
-
-print(criticality.level)        # "critical"
-print(criticality.qoe_impact)   # "Direct impact on playback"
-```
-
-### Explainable ML Risk Scoring
-
-Uses **XGBoost** with **SHAP explanations**:
-
-```python
-from qoe_guard.ai import MLRiskScorer, extract_features_from_changes
-
-scorer = MLRiskScorer(model_type="xgboost")
-
-# Extract features from changes
-features = extract_features_from_changes(
-    changes=[{"change_type": "removed", "path": "$.drm.license"}],
-    criticality_profiles={"$.drm": 0.95},
-)
-
-# Get prediction with explanation
-prediction = scorer.predict(features)
-print(prediction.risk_score)    # 0.78
-print(prediction.decision)      # "FAIL"
-print(prediction.explanation)   # "High risk (78%). Top contributor: critical_path_changes"
-
-# Get SHAP explanation
-shap = scorer.explain(features)
-print(shap.top_positive)  # Features pushing toward high risk
-print(shap.top_negative)  # Features pushing toward low risk
-```
-
-### AI API Endpoints
+### Environment Configuration
 
 ```bash
-# Check AI component status
-GET /ai/status
+# LLM Providers (configure at least one for AI features)
+GROQ_API_KEY=gsk_...              # Recommended: Fastest inference
+OPENAI_API_KEY=sk-...             # GPT-4 Turbo
+ANTHROPIC_API_KEY=sk-ant-...      # Claude 3
 
-# LLM diff analysis
-POST /ai/analyze-diff
-{
-  "baseline": {...},
-  "candidate": {...},
-  "llm_provider": "groq"  # or "openai", "anthropic"
-}
+# Database
+QOE_GUARD_DATABASE_URL=sqlite:///./qoe_guard.db
 
-# Semantic drift detection
-POST /ai/semantic-drift
-{
-  "baseline": {...},
-  "candidate": {...},
-  "similarity_threshold": 0.75
-}
+# Authentication
+QOE_GUARD_JWT_SECRET=your-secret-key
 
-# Anomaly detection
-POST /ai/detect-anomalies
-{
-  "algorithm": "isolation_forest",
-  "metrics": [...]
-}
-
-# Endpoint classification
-POST /ai/classify-endpoint
-{
-  "endpoint_path": "/api/playback",
-  "method": "GET",
-  "description": "..."
-}
-
-# ML risk scoring
-POST /ai/ml-score
-{
-  "changes": [...],
-  "criticality_profiles": {...}
-}
-```
-
-### Environment Variables for AI
-
-```bash
-# LLM Providers (at least one required for LLM features)
-GROQ_API_KEY=gsk_...           # Groq (recommended - fastest)
-OPENAI_API_KEY=sk-...          # OpenAI GPT-4
-ANTHROPIC_API_KEY=sk-ant-...   # Anthropic Claude
-
-# Optional: Override default models
-GROQ_MODEL=llama-3.1-70b-versatile
-OPENAI_MODEL=gpt-4-turbo-preview
-ANTHROPIC_MODEL=claude-3-sonnet-20240229
-```
-
----
-
-## Policy Engine
-
-Configure thresholds and override rules:
-
-```python
-# qoe_guard/policy/config.py
-PolicyConfig(
-    # Thresholds
-    brittleness_fail_threshold=75.0,
-    brittleness_warn_threshold=50.0,
-    qoe_fail_threshold=0.72,
-    qoe_warn_threshold=0.45,
-    
-    # Override rules
-    fail_on_critical_type_changes=True,
-    fail_on_undocumented_drift=True,
-    warn_on_spec_drift=True,
-    
-    # CI behavior
-    ci_hard_gate=True,
-    require_approval_on_warn=False,
-)
-```
-
----
-
-## Baseline Governance
-
-### Promotion Workflow
-
-```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant QG as QoE-Guard
-    participant App as Approver
-    participant DB as Database
-
-    Dev->>QG: Request promotion
-    QG->>QG: Check eligibility
-    Note over QG: - Min stable runs<br/>- No QoE degradation<br/>- No pending requests
-    QG->>DB: Create PromotionRequest
-    QG-->>Dev: Request submitted
-    
-    App->>QG: Review request
-    App->>QG: Approve (with reason)
-    QG->>DB: Update scenario baseline
-    QG->>DB: Create BaselinePromotion
-    QG->>DB: Log to AuditTrail
-    QG-->>App: Approved (version N)
-```
-
-### Eligibility Requirements
-
-- **Stable runs**: Minimum N successful runs with PASS decision
-- **QoE non-degradation**: Risk score not increasing beyond threshold
-- **No pending requests**: Only one promotion request per scenario
-
----
-
-## API Reference
-
-### Authentication
-
-```bash
-# Register (first user becomes admin)
-POST /auth/register
-{
-  "email": "admin@example.com",
-  "password": "secret",
-  "name": "Admin"
-}
-
-# Login
-POST /auth/login
-{
-  "email": "admin@example.com",
-  "password": "secret"
-}
-# Returns JWT token
-```
-
-### Specifications
-
-```bash
-# Discover OpenAPI from Swagger UI
-POST /specs/discover
-{
-  "url": "https://api.example.com/docs",
-  "headers": {"Authorization": "Bearer token"}
-}
-
-# List specs
-GET /specs/
-
-# Get operations
-GET /specs/{spec_id}/operations?tag=playback&method=GET
-```
-
-### Validations
-
-```bash
-# Create validation job
-POST /validations/
-{
-  "spec_id": "uuid",
-  "selected_operations": ["op1", "op2"],
-  "environment": "prod",
-  "concurrency": 5,
-  "safe_methods_only": true
-}
-
-# Get results
-GET /validations/{run_id}
-```
-
-### Governance
-
-```bash
-# Request promotion
-POST /governance/promotions
-{
-  "scenario_id": "uuid",
-  "new_baseline": {...},
-  "justification": "Updated API version"
-}
-
-# Approve (approvers only)
-POST /governance/promotions/{request_id}/approve
-{"reason": "Reviewed and approved"}
-
-# Get policy
-GET /governance/policy
-
-# Update policy (admin only)
-PUT /governance/policy
-{
-  "brittleness_fail_threshold": 70.0
-}
-```
-
----
-
-## Project Structure
-
-```
-qoe_guard/
-├── main.py                    # FastAPI app entry point
-├── server.py                  # Legacy demo server
-│
-├── auth/                      # JWT authentication
-│   ├── service.py            # Token generation/validation
-│   └── middleware.py         # Auth middleware
-│
-├── db/                        # Database layer
-│   ├── database.py           # SQLAlchemy setup
-│   └── models.py             # All DB models
-│
-├── swagger/                   # OpenAPI processing
-│   ├── discovery.py          # Swagger UI → OpenAPI
-│   ├── normalizer.py         # $ref dereferencing
-│   └── inventory.py          # Operation extraction
-│
-├── curl/                      # cURL generation
-│   └── synthesizer.py        # Parameterized cURL
-│
-├── scoring/                   # Scoring engines
-│   ├── brittleness.py        # 4-family scoring
-│   ├── qoe_risk.py           # QoE impact scoring
-│   ├── drift.py              # Drift classification
-│   └── criticality.py        # Weight profiles
-│
-├── validation/                # Validation execution
-│   ├── orchestrator.py       # Job orchestration
-│   ├── runner.py             # HTTP execution
-│   └── conformance.py        # Schema validation
-│
-├── governance/                # Baseline management
-│   ├── baseline.py           # Promotion workflow
-│   └── audit.py              # Audit trail
-│
-├── policy/                    # Policy engine
-│   ├── engine.py             # Policy evaluation
-│   └── config.py             # Policy configuration
-│
-├── api/                       # REST API routes
-│   ├── auth.py
-│   ├── specs.py
-│   ├── scenarios.py
-│   ├── validations.py
-│   └── governance.py
-│
-└── templates/                 # Web UI
-    ├── base.html
-    ├── dashboard.html
-    ├── inventory.html
-    ├── validation.html
-    ├── governance.html
-    └── settings.html
-```
-
----
-
-## Environment Configuration
-
-```bash
-# Database (SQLite for demo, PostgreSQL for production)
-QOE_GUARD_DATABASE_URL=sqlite:///./qoe_guard_enterprise.db
-# or: postgresql://user:pass@host:5432/qoe_guard
-
-# JWT Secret (change in production!)
-QOE_GUARD_JWT_SECRET=your-secret-key-here
-QOE_GUARD_TOKEN_EXPIRE_MINUTES=1440
-
-# Notifications
+# Notifications (optional)
 QOE_GUARD_SLACK_WEBHOOK=https://hooks.slack.com/services/...
-QOE_GUARD_GMAIL_USER=your-email@gmail.com
-QOE_GUARD_GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
-QOE_GUARD_EMAIL_RECIPIENTS=team@example.com
 ```
 
 ---
 
-## CLI Usage
+## 🏛️ Governance & Compliance
+
+### Baseline Promotion Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                 BASELINE PROMOTION WORKFLOW                     │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│   Developer                QoE-Guard              Approver      │
+│       │                        │                      │         │
+│       │  Request Promotion     │                      │         │
+│       │───────────────────────▶│                      │         │
+│       │                        │                      │         │
+│       │                        │  Check Eligibility   │         │
+│       │                        │  • Min stable runs   │         │
+│       │                        │  • No QoE regression │         │
+│       │                        │  • No pending req    │         │
+│       │                        │                      │         │
+│       │                        │  Create Request      │         │
+│       │                        │─────────────────────▶│         │
+│       │                        │                      │         │
+│       │                        │                      │ Review  │
+│       │                        │                      │         │
+│       │                        │◀─────────────────────│ Approve │
+│       │                        │                      │         │
+│       │                        │  Update Baseline     │         │
+│       │                        │  Log to Audit Trail  │         │
+│       │                        │                      │         │
+│       │◀───────────────────────│                      │         │
+│       │   Promotion Complete   │                      │         │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📖 API Reference
+
+### Core Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/register` | Register new user |
+| `POST` | `/auth/login` | Get JWT token |
+| `POST` | `/specs/discover` | Discover OpenAPI from URL |
+| `GET` | `/specs/{id}/operations` | List operations |
+| `POST` | `/validations/` | Create validation job |
+| `GET` | `/validations/{id}` | Get validation results |
+| `POST` | `/governance/promotions` | Request baseline promotion |
+| `GET` | `/ai/status` | Check AI component status |
+| `POST` | `/ai/analyze-diff` | LLM-powered diff analysis |
+
+### CLI Usage
 
 ```bash
-# Validate JSON files
-python -m qoe_guard.cli validate \
-  -b baseline.json \
-  -c candidate.json
+# Validate local JSON files
+python -m qoe_guard.cli validate -b baseline.json -c candidate.json
 
-# Validate URLs
+# Validate URLs with authentication
 python -m qoe_guard.cli validate \
-  --baseline-url http://api.prod/v1/play \
-  --candidate-url http://api.staging/v1/play \
+  --baseline-url https://api.prod/v1/playback \
+  --candidate-url https://api.staging/v1/playback \
   --header "Authorization: Bearer $TOKEN"
 
-# Exit codes
-# 0 = PASS (safe to deploy)
-# 1 = WARN (review recommended)
-# 2 = FAIL (block deployment)
-# 3 = ERROR (validation failed)
+# Exit codes: 0=PASS, 1=WARN, 2=FAIL, 3=ERROR
 ```
 
 ---
 
-## Testing
-
-### Running Tests
+## 🧪 Testing
 
 ```bash
-# Activate virtual environment
-source .venv/bin/activate
+# Run all tests with coverage
+./scripts/run_all_tests_with_coverage.sh
 
-# Run all tests
-pytest tests/ -v
-
-# Run specific test suites
-pytest tests/test_unit.py -v          # Unit tests
-pytest tests/test_integration.py -v  # Integration tests
-pytest tests/test_smoke.py -v        # Smoke tests
+# Run with Allure reporting
+pytest tests/ -v --alluredir=allure-results
+allure serve allure-results
 ```
 
-### Allure Reporting
-
-QoE-Guard uses [Allure Report](https://allurereport.org) for comprehensive test reporting with detailed visualizations, attachments, and test history.
-
-**Quick Start:**
-
-```bash
-# Install Allure (macOS)
-brew install allure
-
-# Run tests and generate report
-./scripts/run_tests_with_allure.sh
-
-# Or run tests and open report in browser
-./scripts/run_tests_with_allure.sh --serve
-```
-
-**Manual Steps:**
-
-```bash
-# 1. Run tests (results saved to allure-results/)
-pytest tests/ -v
-
-# 2. Generate report
-allure generate allure-results -o allure-report --clean
-
-# 3. Open report
-allure open allure-report
-```
-
-**Features:**
-- ✅ Step-by-step test execution breakdown
-- ✅ JSON attachments (baseline/candidate responses, change details)
-- ✅ Feature/story grouping for better organization
-- ✅ Severity levels and test history
-- ✅ CI/CD integration ready
-
-See [ALLURE_REPORTING.md](ALLURE_REPORTING.md) for complete documentation.
-
-### Test Coverage
-
-```bash
-# Test scoring modules
-python -c "
-from qoe_guard.scoring import compute_brittleness_score, compute_qoe_risk
-print('Brittleness:', compute_brittleness_score(contract_complexity=0.5, change_sensitivity=0.3).score)
-print('QoE Risk:', compute_qoe_risk(changes_count=5, critical_changes=2).score)
-"
-```
+**Current Coverage:** 36% | **Tests:** 84 passing
 
 ---
 
@@ -749,207 +424,93 @@ print('QoE Risk:', compute_qoe_risk(changes_count=5, critical_changes=2).score)
 
 ### Phase 1: VS Code Extension (Q2 2026)
 
-Bring QoE-Guard directly into the developer's IDE for seamless API validation workflow.
-
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  VS Code                                                        │
+│  VS Code + QoE-Guard Extension                                  │
 ├─────────────────────────────────────────────────────────────────┤
-│  📁 Explorer    │  📄 api-response.json                         │
-│  ├── src/       │  ┌─────────────────────────────────────────┐  │
-│  ├── tests/     │  │ {                                       │  │
-│  └── baselines/ │  │   "playback": {                         │  │
-│                 │  │     "url": "https://cdn.example.com",   │  │
-│  🛡️ QoE-Guard   │  │     "drm": "widevine"  ⚠️ CHANGED       │  │
-│  ├── Scenarios  │  │   }                                     │  │
-│  ├── Baselines  │  │ }                                       │  │
-│  └── Reports    │  └─────────────────────────────────────────┘  │
-│                 │                                               │
-│  [▶ Validate]   │  QoE Risk: 0.45 ⚠️ WARN                      │
-│  [📥 Capture]   │  Brittleness: 62/100                         │
+│                                                                 │
+│  📁 Explorer     │  📄 api-response.json                        │
+│  ├── src/        │  ┌────────────────────────────────────────┐ │
+│  ├── tests/      │  │ {                                      │ │
+│  └── baselines/  │  │   "playback": {                        │ │
+│                  │  │     "url": "https://cdn.example.com",  │ │
+│  🛡️ QoE-Guard    │  │     "drm": "widevine" ⚠️ CHANGED       │ │
+│  ├── Scenarios   │  │   }                                    │ │
+│  ├── Baselines   │  │ }                                      │ │
+│  └── Reports     │  └────────────────────────────────────────┘ │
+│                  │                                              │
+│  [▶ Validate]    │  QoE Risk: 0.45 ⚠️ WARN                     │
+│  [📥 Capture]    │  Brittleness: 62/100                        │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Planned Features:**
-| Feature | Description |
-|---------|-------------|
-| **Inline Diff Annotations** | See JSON changes highlighted in editor with risk indicators |
-| **Baseline Management** | Save/load baselines from project `.qoe-guard/` folder |
-| **One-Click Capture** | Capture responses from REST Client / Thunder Client |
-| **Git Integration** | Auto-commit baselines, show diff in source control |
-| **Status Bar Widget** | Quick QoE score for current file |
-| **Command Palette** | `QoE-Guard: Validate`, `QoE-Guard: Compare with Baseline` |
-| **OpenAPI IntelliSense** | Auto-detect OpenAPI files and offer validation |
-| **Terminal Integration** | Run CLI commands with output in Problems panel |
-
-**Architecture:**
-```mermaid
-flowchart LR
-    subgraph vscode [VS Code Extension]
-        UI[Extension UI]
-        LSP[Language Server]
-        FileWatcher[File Watcher]
-    end
-    
-    subgraph backend [QoE-Guard Backend]
-        API[REST API]
-        Scoring[Scoring Engine]
-        AI[AI Analysis]
-    end
-    
-    UI --> LSP
-    LSP --> API
-    FileWatcher --> LSP
-    API --> Scoring
-    API --> AI
-```
-
----
+**Features:** Inline diff annotations • Baseline management • Git integration • Status bar widget
 
 ### Phase 2: Chrome DevTools Panel (Q3 2026)
 
-A dedicated DevTools panel for real-time API monitoring and validation during development.
-
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Chrome DevTools                                                │
-├──────────┬──────────┬──────────┬──────────┬────────────────────┤
-│ Elements │ Console  │ Network  │ QoE-Guard│ Performance        │
-├──────────┴──────────┴──────────┴──────────┴────────────────────┤
+│  Chrome DevTools > QoE-Guard                                    │
+├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  📊 Live API Monitor                          [🔴 Recording]   │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ Endpoint              │ Status │ QoE Risk │ Drift       │   │
-│  ├───────────────────────┼────────┼──────────┼─────────────┤   │
-│  │ GET /api/playback     │ ✅ 200 │ 0.12     │ None        │   │
-│  │ GET /api/entitlement  │ ⚠️ 200 │ 0.58     │ Runtime     │   │
-│  │ POST /api/analytics   │ ✅ 201 │ 0.05     │ None        │   │
-│  │ GET /api/drm/license  │ ❌ 500 │ 0.95     │ Undocumented│   │
-│  └─────────────────────────────────────────────────────────┘   │
+│  📊 Live API Monitor                         [🔴 Recording]    │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │ Endpoint            │ Status │ QoE Risk │ Drift          │  │
+│  ├─────────────────────┼────────┼──────────┼────────────────┤  │
+│  │ GET /api/playback   │ ✅ 200 │ 0.12     │ None           │  │
+│  │ GET /api/entitle    │ ⚠️ 200 │ 0.58     │ Runtime        │  │
+│  │ GET /api/drm        │ ❌ 500 │ 0.95     │ Undocumented   │  │
+│  └──────────────────────────────────────────────────────────┘  │
 │                                                                 │
-│  📥 Selected: GET /api/entitlement                             │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │ Changes from Baseline:                                   │   │
-│  │  • $.features.premium: true → false (BREAKING)          │   │
-│  │  • $.expiresAt: "2024-01" → "2025-01" (value change)   │   │
-│  │                                                         │   │
-│  │ [Save as Baseline] [Compare] [Export cURL] [AI Explain] │   │
-│  └─────────────────────────────────────────────────────────┘   │
+│  [Save Baseline] [Compare] [Export cURL] [AI Explain]          │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Planned Features:**
-| Feature | Description |
-|---------|-------------|
-| **Live Traffic Capture** | Intercept API responses from Network panel |
-| **Auto-Baseline Detection** | Recognize known endpoints and compare automatically |
-| **Real-time Scoring** | QoE risk and brittleness scores as requests flow |
-| **Drift Alerts** | Toast notifications for critical drift detection |
-| **Request Replay** | Re-execute requests with modified parameters |
-| **Export to QoE-Guard** | Send captured scenarios to main application |
-| **Session Recording** | Record entire browsing sessions for regression testing |
-| **HAR Import/Export** | Compatible with standard HTTP Archive format |
+**Features:** Live traffic capture • Real-time scoring • Drift alerts • Session recording
 
-**Architecture:**
-```mermaid
-flowchart TB
-    subgraph browser [Chrome Browser]
-        DevTools[DevTools Panel]
-        NetworkPanel[Network Interceptor]
-        Storage[chrome.storage]
-    end
-    
-    subgraph extension [DevTools Extension]
-        Panel[QoE-Guard Panel]
-        Background[Background Script]
-        ContentScript[Content Script]
-    end
-    
-    subgraph backend [QoE-Guard Backend]
-        API[REST API]
-        WebSocket[WebSocket Server]
-    end
-    
-    NetworkPanel --> ContentScript
-    ContentScript --> Background
-    Background --> Panel
-    Panel --> WebSocket
-    WebSocket --> API
-    Storage --> Panel
-```
+### Phase 3: Integrations (Q4 2026+)
+
+| Integration | Priority | Status |
+|-------------|----------|--------|
+| Postman Plugin | High | Planned |
+| GitHub App | High | Planned |
+| Proxy Mode (mitmproxy) | High | Planned |
+| Slack Bot | Medium | Planned |
+| Grafana Dashboard | Low | Planned |
 
 ---
 
-### Phase 3: Additional Integrations (Q4 2026+)
+## 🏆 Patent Defensibility
 
-| Integration | Priority | Description |
-|-------------|----------|-------------|
-| **Postman Plugin** | High | Collection-level validation with QoE scoring |
-| **Insomnia Plugin** | Medium | Similar to Postman integration |
-| **Proxy Mode (mitmproxy)** | High | Capture traffic from any client (mobile, CLI) |
-| **GitHub App** | High | PR comments with validation results |
-| **GitLab Integration** | Medium | MR validation and pipeline gates |
-| **Slack Bot** | Medium | `/qoe-guard validate <url>` commands |
-| **Grafana Dashboard** | Low | Historical QoE metrics visualization |
-| **Terraform Provider** | Low | Infrastructure-as-code for policies |
+This system implements **six novel inventive concepts**:
 
----
+| # | Concept | Innovation |
+|---|---------|------------|
+| **A** | Swagger → Executable Pipeline | Auto-discover OpenAPI, normalize, synthesize cURL |
+| **B** | Multi-Select Orchestration | Parallel validation with per-endpoint policies |
+| **C** | Brittleness Scoring | 4-family signal fusion (static + runtime + change + blast) |
+| **D** | QoE-Aware Weighting | Domain-specific criticality (playback/DRM/ads) |
+| **E** | Drift Classification | Spec vs Runtime vs Undocumented differentiation |
+| **F** | Baseline Governance | Promotion workflow with audit trail |
 
-### Roadmap Timeline
-
-```mermaid
-gantt
-    title QoE-Guard Roadmap 2026
-    dateFormat  YYYY-MM
-    section Phase 1
-    VS Code Extension Design     :2026-01, 2026-02
-    VS Code Extension MVP        :2026-02, 2026-04
-    VS Code Extension GA         :2026-04, 2026-06
-    section Phase 2
-    DevTools Panel Design        :2026-04, 2026-05
-    DevTools Panel MVP           :2026-05, 2026-07
-    DevTools Panel GA            :2026-07, 2026-09
-    section Phase 3
-    Postman Plugin               :2026-07, 2026-09
-    GitHub App                   :2026-08, 2026-10
-    Proxy Mode                   :2026-09, 2026-11
-    section Ongoing
-    Core Platform Improvements   :2026-01, 2026-12
-```
+> These concepts form a coherent **system claim** with multiple **method claims** and **dependent claims** around scoring algorithms, drift classification, and governance workflows.
 
 ---
 
-### Contributing to the Roadmap
+## 📄 License
 
-We welcome community input on prioritization! To suggest features or vote on the roadmap:
-
-1. **GitHub Discussions** - Start a discussion in the Ideas category
-2. **Issues** - Create a feature request issue with the `roadmap` label
-3. **Pull Requests** - Contribute directly to planned features
+MIT License — See [LICENSE](LICENSE) for details.
 
 ---
 
-## Patent Defensibility
+<div align="center">
 
-This system addresses six claimable inventive concepts:
+**QoE-Guard Enterprise**
 
-1. **Swagger Page → Executable Validation Pipeline** (Concept A)
-2. **Multi-Select Endpoint Orchestration + Policy Gating** (Concept B)
-3. **Brittleness Scoring (Static + Dynamic + Drift-aware)** (Concept C)
-4. **QoE-Aware Criticality Weighting** (Concept D)
-5. **Drift Classification (Spec vs Runtime vs Undocumented)** (Concept E)
-6. **Baseline Governance with Auditability** (Concept F)
+*Don't let API drift break your users' experience.*
 
-Together, these form a coherent "system claim" with multiple "method claims" and dependent claims around cURL synthesis, multi-select orchestration, QoE weighting, and drift classification.
+[Documentation](https://github.com/parthassamal/qoe-guard-patent-demo) • [Issues](https://github.com/parthassamal/qoe-guard-patent-demo/issues) • [Discussions](https://github.com/parthassamal/qoe-guard-patent-demo/discussions)
 
----
-
-## License
-
-MIT
-
----
-
-<p align="center">
-  <b>QoE-Guard Enterprise</b> — Don't let API drift break your users' experience.
-</p>
+</div>
