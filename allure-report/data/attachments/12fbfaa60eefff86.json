@@ -1,0 +1,15 @@
+{
+  "total_responses": 3,
+  "anomalies_detected": 1,
+  "anomalies": [
+    {
+      "response_id": 2,
+      "type": "type_mismatch",
+      "field": "maxBitrate",
+      "expected": "integer",
+      "actual": "string",
+      "severity": "high"
+    }
+  ],
+  "action_required": true
+}

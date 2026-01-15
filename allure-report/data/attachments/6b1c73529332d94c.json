@@ -1,0 +1,26 @@
+{
+  "playback": {
+    "url": "https://cdn-new.example.com/v2/content/123/stream.mpd",
+    "resolution": "1080p",
+    "maxBitrate": "6000",
+    "formats": [
+      "dash"
+    ]
+  },
+  "drm": {
+    "license": "https://drm-v2.example.com/acquire",
+    "provider": "widevine"
+  },
+  "access": {
+    "granted": true,
+    "subscriptionLevel": "gold",
+    "capabilities": [
+      "offline",
+      "uhd"
+    ]
+  },
+  "ads": {
+    "enabled": true,
+    "prerollUrl": "https://ads.example.com/preroll"
+  }
+}

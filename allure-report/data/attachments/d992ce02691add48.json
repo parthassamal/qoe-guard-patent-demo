@@ -1,0 +1,9 @@
+{
+  "change": {
+    "path": "$.value",
+    "type": "type_changed",
+    "is_breaking": true
+  },
+  "decision": "PASS",
+  "qoe_risk": 0.12
+}

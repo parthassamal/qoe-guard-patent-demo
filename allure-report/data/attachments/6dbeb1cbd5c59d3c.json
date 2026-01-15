@@ -1,0 +1,20 @@
+[
+  {
+    "response_id": 0,
+    "has_manifest_url": true,
+    "quality": "HD",
+    "max_bitrate": 8000
+  },
+  {
+    "response_id": 1,
+    "has_manifest_url": true,
+    "quality": "HD",
+    "max_bitrate": 8500
+  },
+  {
+    "response_id": 2,
+    "has_manifest_url": true,
+    "quality": "1080p",
+    "max_bitrate": "6000"
+  }
+]

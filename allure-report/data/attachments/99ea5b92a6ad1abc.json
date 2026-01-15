@@ -1,0 +1,12 @@
+{
+  "timestamp": 1768487728.9170303,
+  "metrics_analyzed": 8,
+  "anomalies_detected": 0,
+  "error_rate": 0.375,
+  "average_latency": 1781.625,
+  "max_latency": 5200,
+  "recommendations": [
+    "High error rate (37.5%) - check API health"
+  ],
+  "action_required": true
+}

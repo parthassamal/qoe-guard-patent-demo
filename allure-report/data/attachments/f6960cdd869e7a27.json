@@ -1,0 +1,14 @@
+[
+  {
+    "type": "none",
+    "drift_type": "none"
+  },
+  {
+    "type": "spec",
+    "drift_type": "spec_drift"
+  },
+  {
+    "type": "runtime",
+    "drift_type": "runtime_drift"
+  }
+]

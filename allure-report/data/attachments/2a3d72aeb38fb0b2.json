@@ -1,0 +1,6 @@
+{
+  "decision": "WARN",
+  "qoe_risk_score": 0.65,
+  "breaking_changes": 9,
+  "type_changes": 0
+}

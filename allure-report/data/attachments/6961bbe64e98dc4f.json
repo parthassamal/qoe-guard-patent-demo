@@ -1,0 +1,33 @@
+{
+  "response": {
+    "playback": {
+      "manifestUrl": "https://cdn.example.com/content/123/manifest.m3u8",
+      "quality": "HD",
+      "maxBitrateKbps": 8000,
+      "formats": [
+        "hls",
+        "dash"
+      ]
+    },
+    "drm": {
+      "licenseUrl": "https://drm.example.com/license",
+      "type": "widevine",
+      "keyId": "abc123"
+    },
+    "entitlement": {
+      "allowed": true,
+      "tier": "premium",
+      "features": [
+        "download",
+        "4k",
+        "hdr"
+      ]
+    },
+    "metadata": {
+      "title": "Sample Movie",
+      "duration": 7200,
+      "genre": "action"
+    }
+  },
+  "structure_valid": true
+}

@@ -1,0 +1,10 @@
+{
+  "request": {
+    "contentId": "movie_123",
+    "deviceId": "device_456",
+    "drmType": "widevine"
+  },
+  "validation": {
+    "status": "valid"
+  }
+}

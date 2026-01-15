@@ -1,0 +1,18 @@
+{
+  "validation_id": "e2e_test_1768487728",
+  "diff_result": {
+    "total_changes": 18,
+    "decision": "WARN",
+    "qoe_risk_score": 0.65
+  },
+  "scoring": {
+    "brittleness_score": 67.0,
+    "qoe_risk_score": 0.65,
+    "qoe_decision": "WARN"
+  },
+  "drift": {
+    "type": "undocumented",
+    "severity": "critical"
+  },
+  "final_decision": "WARN"
+}

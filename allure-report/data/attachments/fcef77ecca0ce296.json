@@ -1,0 +1,6 @@
+{
+  "path": "$.quality",
+  "type": "value_changed",
+  "old_value": "HD",
+  "new_value": "4K"
+}

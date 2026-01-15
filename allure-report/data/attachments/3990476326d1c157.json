@@ -1,0 +1,10 @@
+[
+  {
+    "path": "$.playback.manifestUrl",
+    "score": 1.0
+  },
+  {
+    "path": "$.analytics.events",
+    "score": 0.3
+  }
+]

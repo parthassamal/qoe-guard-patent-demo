@@ -1,0 +1,27 @@
+"Status","Start Time","Stop Time","Duration in ms","Parent Suite","Suite","Sub Suite","Test Class","Test Method","Name","Description"
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","0","tests","test_unit_pytest","TestScoringPytest","","","QoE risk score should be within bounds","QoE risk score should be between 0 and 1."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","45","tests","test_e2e_pytest","TestAnomalyDetectionPytest","","","Detect anomalies in latency and error rates","Detect anomalies in runtime metrics."
+"broken","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","0","tests","test_integration_pytest","TestAPISecurityPytest","","","test_authentication_required",""
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","1","tests","test_unit_pytest","TestCriticalityPytest","","","Calculate criticality scores for JSON paths","Test criticality scoring for different JSON paths."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","0","tests","test_unit_pytest","TestJsonDiffPytest","","","Value changes should be detected and classified","Value changes should be detected."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","1","tests","test_unit_pytest","TestRealWorldScenariosPytest","","","Minor changes should result in PASS decision","Test minor changes scenario from sample data."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","0","tests","test_e2e_pytest","TestAnomalyDetectionPytest","","","Detect anomalies in API response patterns","Detect anomalies in API response patterns."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","0","tests","test_unit_pytest","TestRealWorldScenariosPytest","","","Breaking changes should result in FAIL decision","Test breaking changes scenario from sample data."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","0","tests","test_unit_pytest","TestJsonDiffPytest","","","Identical JSON should produce no changes","Identical JSON objects should produce no changes."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","0","tests","test_e2e_pytest","TestCriticalityAnalysisPytest","","","Calculate criticality scores for JSON paths","Test criticality scoring for different JSON paths."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","1","tests","test_unit_pytest","TestFeatureExtractionPytest","","","Empty changes should produce zero features","No changes should produce zero/low features."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","2","tests","test_unit_pytest","TestJsonDiffPytest","","","Type changes should be flagged as breaking","Type changes should be detected and flagged as critical."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","6","tests","test_e2e_pytest","TestAPISchemaValidationPytest","","","Validate response schema against OpenAPI spec","Validate that responses conform to OpenAPI response schemas."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","10","tests","test_e2e_pytest","TestAPISchemaValidationPytest","","","Validate request schema against OpenAPI spec","Validate that requests conform to OpenAPI request schemas."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","1","tests","test_unit_pytest","TestDriftClassificationPytest","","","Classify different types of drift","Test drift classification logic."
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","2","tests","test_e2e_pytest","TestE2EValidationWorkflowPytest","","","Full validation workflow: Baseline → Candidate → Analysis → Decision","
+    Tests the complete validation pipeline:
+    1. Load baseline and candidate responses
+    2. Perform JSON diff analysis
+    3. Extract features
+    4. Calculate brittleness and QoE risk scores
+    5. Classify drift
+    6. Generate final decision
+    7. Validate all outputs
+    "
+"passed","Thu Jan 15 14:35:28 UTC 2026","Thu Jan 15 14:35:28 UTC 2026","1","tests","test_unit_pytest","TestScoringPytest","","","Brittleness score should be within bounds","Brittleness score should be between 0 and 100."

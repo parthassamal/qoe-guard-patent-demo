@@ -1,0 +1,11 @@
+{
+  "request": {
+    "contentId": "movie_123",
+    "deviceId": "device_456",
+    "drmType": "invalid_drm"
+  },
+  "validation": {
+    "status": "invalid",
+    "reason": "invalid_enum_value"
+  }
+}

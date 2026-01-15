@@ -1,0 +1,9 @@
+{
+  "request": {
+    "contentId": "movie_123"
+  },
+  "validation": {
+    "status": "invalid",
+    "reason": "missing_required_field"
+  }
+}

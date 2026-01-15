@@ -1,0 +1,18 @@
+{
+  "qoe_risk_score": 0.52,
+  "decision": "WARN",
+  "top_signals": [
+    {
+      "signal": "critical_changes",
+      "contribution": 0.3
+    },
+    {
+      "signal": "type_changes",
+      "contribution": 0.12
+    },
+    {
+      "signal": "removed_fields",
+      "contribution": 0.08
+    }
+  ]
+}

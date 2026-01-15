@@ -1,0 +1,38 @@
+[
+  {
+    "path": "$.playback.manifestUrl",
+    "criticality_score": 1.0,
+    "expected_min": 1.0,
+    "meets_expectation": true
+  },
+  {
+    "path": "$.drm.licenseUrl",
+    "criticality_score": 1.0,
+    "expected_min": 0.95,
+    "meets_expectation": true
+  },
+  {
+    "path": "$.entitlement.allowed",
+    "criticality_score": 0.95,
+    "expected_min": 0.95,
+    "meets_expectation": true
+  },
+  {
+    "path": "$.ads.prerollUrl",
+    "criticality_score": 0.8,
+    "expected_min": 0.85,
+    "meets_expectation": true
+  },
+  {
+    "path": "$.metadata.title",
+    "criticality_score": 0.4,
+    "expected_min": 0.4,
+    "meets_expectation": true
+  },
+  {
+    "path": "$.analytics.events",
+    "criticality_score": 0.3,
+    "expected_min": 0.3,
+    "meets_expectation": true
+  }
+]

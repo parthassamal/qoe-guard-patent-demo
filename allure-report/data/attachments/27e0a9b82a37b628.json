@@ -1,0 +1,11 @@
+{
+  "response": {
+    "playback": {
+      "quality": "HD"
+    }
+  },
+  "validation": {
+    "status": "invalid",
+    "reason": "missing_required_field"
+  }
+}

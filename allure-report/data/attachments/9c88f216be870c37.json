@@ -1,0 +1,13 @@
+{
+  "drift_type": "undocumented",
+  "severity": "critical",
+  "affected_paths": [
+    "$.drm.keyId",
+    "$.drm.licenseUrl",
+    "$.drm.type",
+    "$.entitlement",
+    "$.playback.formats[1]",
+    "$.playback.manifestUrl",
+    "$.playback.maxBitrateKbps"
+  ]
+}
