@@ -209,23 +209,41 @@ jobs:
 
 ---
 
-## 🔔 Webhook Notifications
+## 🔔 Notifications (Slack & Gmail)
 
-Configure via environment variables:
+QoE-Guard automatically sends notifications when validations complete. Configure in `.env`:
 
+### Slack Setup
+
+1. **Create a Slack Incoming Webhook:**
+   - Go to https://api.slack.com/messaging/webhooks
+   - Create a new app → Incoming Webhooks → Add New Webhook
+   - Copy the webhook URL
+
+2. **Add to `.env`:**
 ```bash
-# Slack
-export QOE_GUARD_SLACK_WEBHOOK="https://hooks.slack.com/..."
-
-# Discord
-export QOE_GUARD_DISCORD_WEBHOOK="https://discord.com/api/webhooks/..."
-
-# Microsoft Teams
-export QOE_GUARD_TEAMS_WEBHOOK="https://outlook.office.com/webhook/..."
+QOE_GUARD_SLACK_WEBHOOK=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
 ```
 
-### Slack Notification Example
+### Gmail Setup
 
+1. **Enable 2-Factor Authentication** on your Google Account
+
+2. **Generate App Password:**
+   - Go to https://myaccount.google.com/apppasswords
+   - Select "Mail" and "Other (Custom name)" → "QoE-Guard"
+   - Copy the 16-character password (spaces are fine)
+
+3. **Add to `.env`:**
+```bash
+QOE_GUARD_GMAIL_USER=your-email@gmail.com
+QOE_GUARD_GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+QOE_GUARD_EMAIL_RECIPIENTS=team@example.com,devops@example.com
+```
+
+### Notification Examples
+
+**Slack:**
 ```
 🚨 QoE-Guard: FAIL
 
@@ -238,7 +256,26 @@ Top Signals:
 • type_changes: 1
 • numeric_delta_max: 12.0
 
-[View Report]
+[View Report] button
+```
+
+**Gmail (HTML):**
+- Beautiful HTML email with color-coded header
+- Risk score and metrics
+- Top signals list
+- Direct link to full report
+
+### Other Webhook Options
+
+```bash
+# Discord
+QOE_GUARD_DISCORD_WEBHOOK=https://discord.com/api/webhooks/...
+
+# Microsoft Teams
+QOE_GUARD_TEAMS_WEBHOOK=https://outlook.office.com/webhook/...
+
+# Custom webhook
+QOE_GUARD_CUSTOM_WEBHOOK=https://your-custom-webhook.com/endpoint
 ```
 
 ---
@@ -284,7 +321,7 @@ qoe_guard/
 ├── features.py    # Variance feature extraction
 ├── model.py       # Risk scoring + policy
 ├── storage.py     # JSON persistence
-├── webhooks.py    # Slack/Discord/Teams notifications
+├── webhooks.py    # Slack/Gmail/Discord/Teams notifications
 └── templates/     # Web UI (Jinja2)
 
 tests/
@@ -316,14 +353,21 @@ tests/
 
 ### Environment Variables
 
+Copy `config.example.env` to `.env` and customize:
+
 ```bash
 # Target defaults
 QOE_GUARD_TARGET_BASE_URL=http://localhost:8001
 QOE_GUARD_ENDPOINT=/play
 QOE_GUARD_HTTP_TIMEOUT_SEC=15
 
-# Webhooks
-QOE_GUARD_SLACK_WEBHOOK=https://hooks.slack.com/...
+# Notifications (Slack & Gmail)
+QOE_GUARD_SLACK_WEBHOOK=https://hooks.slack.com/services/...
+QOE_GUARD_GMAIL_USER=your-email@gmail.com
+QOE_GUARD_GMAIL_APP_PASSWORD=xxxx xxxx xxxx xxxx
+QOE_GUARD_EMAIL_RECIPIENTS=team@example.com,devops@example.com
+
+# Optional: Other webhooks
 QOE_GUARD_DISCORD_WEBHOOK=https://discord.com/api/webhooks/...
 QOE_GUARD_TEAMS_WEBHOOK=https://outlook.office.com/webhook/...
 ```

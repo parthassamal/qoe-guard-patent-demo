@@ -1,13 +1,16 @@
 """
 QoE-Guard Webhook Notifications
 
-Send validation results to Slack, Discord, Microsoft Teams, or custom webhooks.
+Send validation results to Slack, Gmail, Discord, Microsoft Teams, or custom webhooks.
 """
 from __future__ import annotations
 
 import json
 import os
-from typing import Any, Dict, Optional
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -164,6 +167,146 @@ def format_teams(result: ValidationResult) -> Dict[str, Any]:
     return card
 
 
+def format_email_html(result: ValidationResult) -> str:
+    """Format validation result as HTML email."""
+    emoji = get_emoji(result.action)
+    color = get_color(result.action)
+    
+    signals_html = "".join(
+        f"<li><strong>{s['signal']}:</strong> {s['value']}</li>"
+        for s in result.top_signals[:4]
+    )
+    
+    report_link = f'<a href="{result.report_url}" style="background-color: {color}; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 15px;">View Full Report</a>' if result.report_url else ""
+    
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background-color: {color}; color: white; padding: 20px; border-radius: 5px 5px 0 0; }}
+            .content {{ background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; }}
+            .metric {{ display: inline-block; margin: 10px 20px 10px 0; }}
+            .metric-label {{ font-size: 12px; color: #666; text-transform: uppercase; }}
+            .metric-value {{ font-size: 24px; font-weight: bold; color: {color}; }}
+            ul {{ list-style: none; padding: 0; }}
+            li {{ padding: 5px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>{emoji} QoE-Guard Validation: {result.action}</h1>
+            </div>
+            <div class="content">
+                <div class="metric">
+                    <div class="metric-label">Risk Score</div>
+                    <div class="metric-value">{result.risk_score:.4f}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Changes Detected</div>
+                    <div class="metric-value">{result.change_count}</div>
+                </div>
+                
+                <h3>Endpoint</h3>
+                <p><code>{result.endpoint}</code></p>
+                
+                <h3>Top Signals</h3>
+                <ul>{signals_html}</ul>
+                
+                <p><strong>Run ID:</strong> <code>{result.run_id}</code></p>
+                
+                {report_link}
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+
+def format_email_text(result: ValidationResult) -> str:
+    """Format validation result as plain text email."""
+    emoji = get_emoji(result.action)
+    signals_text = "\n".join(f"  • {s['signal']}: {s['value']}" for s in result.top_signals[:4])
+    report_link = f"\nView report: {result.report_url}" if result.report_url else ""
+    
+    return f"""
+{emoji} QoE-Guard Validation: {result.action}
+
+Endpoint:     {result.endpoint}
+Risk Score:   {result.risk_score:.4f}
+Changes:      {result.change_count}
+Run ID:       {result.run_id}
+
+Top Signals:
+{signals_text}
+{report_link}
+"""
+
+
+def send_email(
+    smtp_server: str,
+    smtp_port: int,
+    sender_email: str,
+    sender_password: str,
+    recipient_emails: List[str],
+    result: ValidationResult,
+    subject_prefix: str = "QoE-Guard",
+    use_tls: bool = True,
+) -> bool:
+    """Send validation result via email (Gmail or SMTP)."""
+    try:
+        emoji = get_emoji(result.action)
+        subject = f"{emoji} {subject_prefix}: {result.action} - {result.endpoint}"
+        
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = sender_email
+        msg["To"] = ", ".join(recipient_emails)
+        
+        # Plain text version
+        text_part = MIMEText(format_email_text(result), "plain")
+        msg.attach(text_part)
+        
+        # HTML version
+        html_part = MIMEText(format_email_html(result), "html")
+        msg.attach(html_part)
+        
+        # Send email
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            if use_tls:
+                server.starttls()
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+        
+        return True
+        
+    except Exception as e:
+        print(f"Email error: {e}")
+        return False
+
+
+def send_gmail(
+    sender_email: str,
+    app_password: str,
+    recipient_emails: List[str],
+    result: ValidationResult,
+) -> bool:
+    """Send email via Gmail SMTP."""
+    return send_email(
+        smtp_server="smtp.gmail.com",
+        smtp_port=587,
+        sender_email=sender_email,
+        sender_password=app_password,
+        recipient_emails=recipient_emails,
+        result=result,
+        subject_prefix="QoE-Guard",
+        use_tls=True,
+    )
+
+
 def send_webhook(
     webhook_url: str,
     result: ValidationResult,
@@ -206,9 +349,23 @@ def send_webhook(
 
 def notify_from_env(result: ValidationResult) -> None:
     """Send notifications based on environment variables."""
-    # Slack
+    # Slack (priority: high visibility)
     if slack_url := os.getenv("QOE_GUARD_SLACK_WEBHOOK"):
         send_webhook(slack_url, result, WebhookType.SLACK)
+    
+    # Gmail/Email (priority: high visibility)
+    if gmail_user := os.getenv("QOE_GUARD_GMAIL_USER"):
+        gmail_password = os.getenv("QOE_GUARD_GMAIL_APP_PASSWORD")
+        recipients = os.getenv("QOE_GUARD_EMAIL_RECIPIENTS", "").split(",")
+        recipients = [r.strip() for r in recipients if r.strip()]
+        
+        if gmail_password and recipients:
+            send_gmail(
+                sender_email=gmail_user,
+                app_password=gmail_password,
+                recipient_emails=recipients,
+                result=result,
+            )
     
     # Discord
     if discord_url := os.getenv("QOE_GUARD_DISCORD_WEBHOOK"):

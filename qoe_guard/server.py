@@ -18,6 +18,7 @@ from .diff import diff_json
 from .features import extract_features, to_dict
 from .model import score
 from .storage import upsert_scenario, list_scenarios, list_runs, add_run, get_run
+from .webhooks import notify_from_env, ValidationResult
 
 templates = Jinja2Templates(directory=str(__import__("pathlib").Path(__file__).resolve().parent / "templates"))
 
@@ -198,6 +199,7 @@ def seed_custom(
 
 @app.post("/run_custom")
 def run_custom(
+    request: Request,
     scenario_id: str = Form(...),
     candidate_base_url: str = Form(""),
     candidate_endpoint: str = Form(""),
@@ -275,6 +277,24 @@ def run_custom(
             "candidate": candidate,
         }
         add_run(record)
+        
+        # Send notifications (Slack, Gmail, etc.)
+        try:
+            report_url = f"{request.base_url}runs/{run_id}/report" if hasattr(request, 'base_url') else None
+            notify_result = ValidationResult(
+                run_id=run_id,
+                endpoint=endpoint,
+                risk_score=decision.risk_score,
+                action=decision.action,
+                change_count=len(changes),
+                top_signals=decision.reasons.get("top_signals", []),
+                report_url=str(report_url) if report_url else None,
+            )
+            notify_from_env(notify_result)
+        except Exception as notify_err:
+            # Don't fail the request if notifications fail
+            print(f"Notification error: {notify_err}")
+        
         return RedirectResponse(url=f"/runs/{run_id}/report", status_code=302)
     except Exception as e:
         return _redirect_with_error(str(e))
