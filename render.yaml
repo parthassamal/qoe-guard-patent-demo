@@ -1,0 +1,51 @@
+# Render Blueprint - https://render.com/docs/blueprint-spec
+# Deploy: Connect GitHub repo to Render, it auto-detects this file
+
+services:
+  # QoE-Guard Web Application
+  - type: web
+    name: qoe-guard
+    runtime: python
+    region: oregon  # or frankfurt, singapore, ohio
+    plan: free      # free tier (512MB RAM, sleeps after 15 min)
+    
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    
+    startCommand: uvicorn qoe_guard.main:app --host 0.0.0.0 --port $PORT
+    
+    healthCheckPath: /health
+    
+    envVars:
+      # Database (uses Render PostgreSQL)
+      - key: QOE_GUARD_DATABASE_URL
+        fromDatabase:
+          name: qoe-guard-db
+          property: connectionString
+      
+      # JWT Secret (auto-generated)
+      - key: QOE_GUARD_JWT_SECRET
+        generateValue: true
+      
+      # Python settings
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      
+      # Optional: AI/ML API Keys (add in Render dashboard)
+      # - key: GROQ_API_KEY
+      #   sync: false
+      # - key: OPENAI_API_KEY
+      #   sync: false
+      
+      # Optional: Notifications
+      # - key: QOE_GUARD_SLACK_WEBHOOK
+      #   sync: false
+
+# PostgreSQL Database
+databases:
+  - name: qoe-guard-db
+    plan: free  # Free for 90 days, then $7/month
+    region: oregon
+    databaseName: qoe_guard
+    user: qoe_guard_user
