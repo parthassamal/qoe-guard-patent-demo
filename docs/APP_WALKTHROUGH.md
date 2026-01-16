@@ -405,5 +405,5 @@ open http://localhost:8010
 
 Patent-pending technology. All rights reserved.
 
-**Inventor:** Partha Samal  
+**Inventors:** Deepti Shoemaker Partha Sarathi Samal Suresh Kumar Palus
 **Date:** January 2026
