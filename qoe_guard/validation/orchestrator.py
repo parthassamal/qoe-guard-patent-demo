@@ -27,7 +27,7 @@ from .conformance import validate_response, ConformanceResult
 from ..scoring.brittleness import compute_brittleness_score, BrittlenessResult
 from ..scoring.qoe_risk import compute_qoe_risk, QoERiskResult
 from ..scoring.drift import classify_drift, DriftClassification
-from ..scoring.criticality import DEFAULT_CRITICALITY_PROFILES, get_criticality_weight
+from ..scoring.criticality import DEFAULT_CRITICALITY_PROFILES, get_criticality_for_path
 from ..policy.engine import evaluate_policy, PolicyDecision
 from ..policy.config import DEFAULT_POLICY
 
