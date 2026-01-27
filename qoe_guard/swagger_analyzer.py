@@ -20,6 +20,8 @@ from urllib.parse import urljoin, urlparse
 import requests
 import yaml
 
+from .swagger.discovery import discover_openapi_spec, DiscoveryError
+
 
 class EndpointStatus(Enum):
     HEALTHY = "healthy"
@@ -191,7 +193,7 @@ def analyze_swagger(
     Analyze a Swagger/OpenAPI specification and test endpoints.
     
     Args:
-        swagger_url: URL to OpenAPI spec (JSON or YAML)
+        swagger_url: URL to OpenAPI spec (JSON, YAML, or Swagger UI HTML page)
         base_url: Override base URL from spec (optional)
         headers: Headers to use for testing (optional)
         timeout: Request timeout in seconds
@@ -202,9 +204,38 @@ def analyze_swagger(
     """
     start_time = time.time()
     
-    # Fetch and parse spec
+    # Discover and fetch spec (supports direct JSON/YAML URLs and Swagger UI pages)
     try:
-        spec = fetch_openapi_spec(swagger_url, headers, timeout=30)
+        # Try discovery first (handles Swagger UI pages, FastAPI docs, ReDoc, etc.)
+        try:
+            discovery_result = discover_openapi_spec(swagger_url, headers, timeout=30)
+            spec = discovery_result.spec
+            # Use discovered spec URL for reporting
+            actual_spec_url = discovery_result.doc_url
+        except DiscoveryError as de:
+            # Fallback to direct fetch for backward compatibility
+            try:
+                spec = fetch_openapi_spec(swagger_url, headers, timeout=30)
+                actual_spec_url = swagger_url
+            except Exception as fe:
+                # Provide helpful error message with suggestions
+                error_msg = str(de)
+                if "Could not discover" in error_msg:
+                    # Suggest common paths for Spring Boot/SpringDoc
+                    from urllib.parse import urlparse, urljoin
+                    parsed = urlparse(swagger_url)
+                    if "swagger-ui" in parsed.path:
+                        parent = "/".join([p for p in parsed.path.split("/") if p and "swagger-ui" not in p])
+                        if parent:
+                            suggestions = [
+                                f"{parent}/v3/api-docs",
+                                f"{parent}/api/v3/api-docs",
+                                f"{parent}/openapi.json",
+                            ]
+                            base = f"{parsed.scheme}://{parsed.netloc}"
+                            suggested_urls = [urljoin(base, s) for s in suggestions]
+                            error_msg += f". Try these direct URLs: {', '.join(suggested_urls)}"
+                raise Exception(f"Discovery failed: {error_msg}. Direct fetch also failed: {fe}")
     except Exception as e:
         return SwaggerAnalysis(
             swagger_url=swagger_url,

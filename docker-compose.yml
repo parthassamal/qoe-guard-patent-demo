@@ -7,8 +7,10 @@ services:
       - "8010:8010"
     volumes:
       - ./data:/app/data
+      - ./qoe_guard:/app/qoe_guard
     environment:
       - QOE_GUARD_TARGET_BASE_URL=http://demo-target:8001
+    command: ["uvicorn", "qoe_guard.server:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]
     depends_on:
       - demo-target
     healthcheck:
@@ -22,6 +24,8 @@ services:
     command: ["python", "demo_target_service.py"]
     ports:
       - "8001:8001"
+    volumes:
+      - ./demo_target_service.py:/app/demo_target_service.py
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/play?v=1"]
       interval: 30s

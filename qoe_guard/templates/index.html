@@ -4,27 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QoE-Guard Patent Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root{
-      --bg:#0b1220;
-      --panel:#0f1a2e;
-      --panel2:#0c1526;
-      --text:#e7eefc;
-      --muted:#a9b7d3;
-      --border:rgba(231,238,252,.12);
-      --accent:#7aa2ff;
-      --good:#6ee7a8;
-      --bad:#ff7a7a;
-      --warn:#ffd37a;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 14px;
+      --bg:#ffffff;
+      --panel:#f8f9fa;
+      --panel2:#f1f3f5;
+      --text:#1a1a1a;
+      --muted:#6c757d;
+      --border:rgba(0,0,0,.12);
+      --accent:#0d6efd;
+      --good:#198754;
+      --bad:#dc3545;
+      --warn:#ffc107;
+      --shadow: 0 2px 8px rgba(0,0,0,.1);
+      --radius: 8px;
     }
     *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 10% -10%, rgba(122,162,255,.35), transparent 60%),
-                  radial-gradient(800px 500px at 90% 0%, rgba(110,231,168,.18), transparent 55%),
+      background: linear-gradient(135deg, rgba(13,110,253,.05) 0%, rgba(25,135,84,.05) 100%),
                   var(--bg);
       color: var(--text);
       line-height:1.35;
@@ -38,7 +38,7 @@
     .grid{ display:grid; grid-template-columns: 1.2fr .8fr; gap: 16px; }
     @media (max-width: 980px){ .grid{ grid-template-columns: 1fr; } }
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      background: #ffffff;
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 16px;
@@ -49,7 +49,7 @@
     .pill{
       display:inline-flex; align-items:center; gap:8px;
       border: 1px solid var(--border);
-      background: rgba(0,0,0,.18);
+      background: rgba(0,0,0,.05);
       padding: 8px 10px; border-radius: 999px;
       color: var(--muted);
       font-size: 12px;
@@ -60,7 +60,7 @@
       padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid var(--border);
-      background: rgba(0,0,0,.22);
+      background: #ffffff;
       color: var(--text);
       text-decoration:none;
       cursor:pointer;
@@ -68,21 +68,29 @@
       user-select:none;
       font-size: 13px;
     }
-    .btn:hover{ background: rgba(122,162,255,.12); border-color: rgba(122,162,255,.35); }
+    .btn:hover{ background: #f8f9fa; border-color: var(--accent); }
     .btn:active{ transform: translateY(1px); }
-    .btn.primary{ background: rgba(122,162,255,.18); border-color: rgba(122,162,255,.45); }
-    .btn.good{ background: rgba(110,231,168,.12); border-color: rgba(110,231,168,.35); }
-    .btn.warn{ background: rgba(255,211,122,.12); border-color: rgba(255,211,122,.35); }
-    .btn.bad{ background: rgba(255,122,122,.12); border-color: rgba(255,122,122,.35); }
+    .btn.primary{ background: var(--accent); border-color: var(--accent); color: #ffffff; }
+    .btn.primary:hover{ background: #0b5ed7; border-color: #0b5ed7; }
+    .btn.good{ background: var(--good); border-color: var(--good); color: #ffffff; }
+    .btn.good:hover{ background: #157347; border-color: #157347; }
+    .btn.warn{ background: var(--warn); border-color: var(--warn); color: #000000; }
+    .btn.warn:hover{ background: #ffcd39; border-color: #ffcd39; }
+    .btn.bad{ background: var(--bad); border-color: var(--bad); color: #ffffff; }
+    .btn.bad:hover{ background: #bb2d3b; border-color: #bb2d3b; }
     input, textarea, select{
       width:100%;
       border-radius: 10px;
       border: 1px solid var(--border);
-      background: rgba(0,0,0,.22);
+      background: #ffffff;
       color: var(--text);
       padding: 10px 10px;
       outline:none;
       font-size: 13px;
+    }
+    input:focus, textarea:focus, select:focus{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(13,110,253,.1);
     }
     textarea{ min-height: 90px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     label{ display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
@@ -93,32 +101,254 @@
       border-radius: 12px;
       padding: 12px 12px;
       border: 1px solid var(--border);
-      background: rgba(0,0,0,.20);
+      background: #ffffff;
       margin-bottom: 12px;
     }
-    .alert.error{ border-color: rgba(255,122,122,.35); background: rgba(255,122,122,.08); }
-    .alert.ok{ border-color: rgba(110,231,168,.35); background: rgba(110,231,168,.08); }
+    .alert.error{ border-color: var(--bad); background: rgba(220,53,69,.1); }
+    .alert.ok{ border-color: var(--good); background: rgba(25,135,84,.1); }
     table { border-collapse: collapse; width: 100%; }
-    th, td { border-top: 1px solid rgba(231,238,252,.08); padding: 10px 10px; text-align: left; vertical-align: top; font-size: 13px; }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; }
-    code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; color: rgba(231,238,252,.9); }
+    th, td { border-top: 1px solid var(--border); padding: 10px 10px; text-align: left; vertical-align: top; font-size: 13px; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; background: #f8f9fa; }
+    tr:hover td { background: rgba(13,110,253,.05); }
+    code{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; color: var(--text); background: rgba(0,0,0,.05); padding: 2px 6px; border-radius: 4px; }
+    /* URL trimming styles */
+    input[name="base_url"], input[name="candidate_base_url"], input[name="endpoint"], input[name="candidate_endpoint"],
+    input.baseline-endpoint-input, input.candidate-endpoint-input, input#baseline_base_url, input#candidate_base_url {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      cursor: text;
+    }
+    table td code, table td .muted code {
+      max-width: 250px;
+      display: inline-block;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      vertical-align: middle;
+      cursor: help;
+    }
+    table td.muted {
+      max-width: 300px;
+      overflow: hidden;
+    }
     .badge{
       padding: 3px 10px; border-radius: 999px;
       border: 1px solid var(--border);
       font-size: 12px;
       display:inline-block;
       background: rgba(0,0,0,.18);
+      font-weight: 600;
+    }
+    .badge.pass{
+      background: rgba(25, 135, 84, 0.1);
+      border-color: var(--good);
+      color: var(--good);
+    }
+    .badge.warn{
+      background: rgba(255, 193, 7, 0.1);
+      border-color: var(--warn);
+      color: #856404;
+    }
+    .badge.fail{
+      background: rgba(220, 53, 69, 0.1);
+      border-color: var(--bad);
+      color: var(--bad);
     }
     details{
-      border: 1px solid rgba(231,238,252,.10);
+      border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px 10px;
-      background: rgba(0,0,0,.14);
+      background: #f8f9fa;
     }
     summary{ cursor:pointer; color: var(--text); font-weight: 600; }
     .stack{ display:flex; flex-direction:column; gap: 10px; }
     .kpi{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .small{ font-size: 12px; color: var(--muted); }
+    /* Ensure chart legend text is readable */
+    canvas + div, #decisionChart + div {
+      color: rgba(26, 26, 26, 1) !important;
+    }
+    /* Modal styles */
+    .modal-overlay{
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active{
+      display: flex;
+    }
+    .modal{
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+    }
+    .modal-header{
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-title{
+      margin: 0;
+      font-size: 18px;
+    }
+    .modal-close{
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+    .modal-close:hover{
+      background: rgba(255,255,255,.1);
+    }
+    .modal-body{
+      padding: 16px;
+    }
+    .request-details, .response-details{
+      margin-bottom: 20px;
+    }
+    .detail-section{
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+    }
+    .detail-label{
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .detail-value{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      word-break: break-all;
+      white-space: pre-wrap;
+    }
+    .status-badge{
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+    .status-200{ background: rgba(25,135,84,.1); color: var(--good); border: 1px solid var(--good); }
+    .status-400{ background: rgba(255,193,7,.1); color: #856404; border: 1px solid var(--warn); }
+    .status-500{ background: rgba(220,53,69,.1); color: var(--bad); border: 1px solid var(--bad); }
+    .stats-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card{
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .stat-value{
+      font-size: 32px;
+      font-weight: 700;
+      margin: 8px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .stat-label{
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .chart-container{
+      position: relative;
+      height: 300px;
+      margin: 20px 0;
+    }
+    .chart-card{
+      margin-bottom: 24px;
+    }
+    .charts-grid{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 980px){
+      .charts-grid{ grid-template-columns: 1fr; }
+    }
+    .tabs{
+      display:flex;
+      gap:8px;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 20px;
+      padding-bottom: 0;
+    }
+    .tab{
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+      position: relative;
+      top: 2px;
+    }
+    .tab:hover{
+      color: var(--text);
+      background: rgba(13,110,253,.08);
+    }
+    .tab.active{
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: rgba(13,110,253,.1);
+    }
+    .tab-content{
+      display: none;
+      visibility: hidden;
+    }
+    .tab-content.active{
+      display: block;
+      visibility: visible;
+    }
+    /* Ensure generator tab is completely hidden when not active */
+    #tab-generator:not(.active) {
+      display: none;
+      visibility: hidden;
+    }
+    @keyframes spin{
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -126,12 +356,9 @@
     <div class="header">
       <div>
         <h1 class="title">QoE-Guard</h1>
-        <p class="subtitle">Scenario baseline → Candidate run → QoE risk score → PASS/WARN/FAIL → Explainable report (auditable evidence, path-level diffs)</p>
       </div>
-      <div class="kpi">
-        <span class="pill">Default target: <code>{{ default_base_url }}</code></span>
-        <span class="pill">Default endpoint: <code>{{ default_endpoint }}</code></span>
-        <a href="/swagger-analyzer" class="btn">🔍 Swagger Analyzer</a>
+      <div>
+        <button type="button" onclick="showAboutModal()" style="background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500;">About</button>
       </div>
     </div>
 
@@ -147,196 +374,1665 @@
       </div>
     {% endif %}
 
-    <div class="grid">
-      <div class="card">
-        <h2>Demo mode (local)</h2>
-        <div class="actions">
-          <a class="btn primary" href="/seed">Seed baseline</a>
-          <a class="btn good" href="/run?v=1">Run v1 (PASS)</a>
-          <a class="btn warn" href="/run?v=2">Run v2 (WARN/FAIL)</a>
-        </div>
-        <div class="help">These buttons hit the local demo target API. For real endpoints/data, use “Real data mode”.</div>
-      </div>
-
-      <div class="card">
-        <h2>Quick tips</h2>
-        <div class="stack">
-          <div class="small"><b>Security:</b> headers are only used for the request and are not stored. Prefer short-lived tokens.</div>
-          <div class="small"><b>Best practice:</b> seed a baseline from a stable “known-good” response, then validate candidate versions (staging/canary) against it.</div>
-          <div class="small"><b>Explainability:</b> reports include top signals and path-level diffs for audit.</div>
-        </div>
-      </div>
+    <!-- Tabs Navigation -->
+    <div class="tabs">
+      <button type="button" class="tab active" data-tab="generator">Scenario Generator</button>
+      <button type="button" class="tab" data-tab="execution">Scenario Execution</button>
+      <button type="button" class="tab" data-tab="results">Execution Results</button>
+      <button type="button" class="tab" data-tab="swagger">Swagger Analyzer</button>
     </div>
 
-    <div class="card" style="margin-top:16px;">
-      <h2>Real data mode</h2>
-
-      <div class="row" style="margin-top:10px;">
-        <div>
-          <h3 style="margin:0 0 10px; font-size:14px;">1) Seed / update baseline scenario</h3>
+    <!-- Tab 1: Scenario Generator -->
+    <div id="tab-generator" class="tab-content active">
+      <div class="card">
+        <h2>Create Scenario</h2>
+        <div style="margin-top:10px;">
           <form method="post" action="/seed_custom" id="seedForm">
-            <div class="row">
+            <!-- Scenario Metadata -->
+            <div class="row" style="margin-bottom: 20px;">
               <div>
-                <label>Scenario name (optional)</label>
-                <input name="name" placeholder="e.g., prod-playback-baseline" />
+                <label>Scenario name <span style="color: var(--bad);">*</span></label>
+                <input name="name" placeholder="e.g., prod-playback-baseline" required />
               </div>
               <div>
                 <label>Tags (comma separated)</label>
                 <input name="tags" placeholder="baseline, prod, playback" />
               </div>
             </div>
-            <div class="row">
-              <div>
-                <label>Base URL</label>
-                <input name="base_url" value="{{ default_base_url }}" placeholder="https://api.example.com" />
+
+            <!-- Baseline and Candidate Sections (Horizontal) -->
+            <div class="row" style="margin-bottom: 20px; gap: 16px;">
+              <!-- Baseline Section -->
+              <div style="flex: 1; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; background: rgba(13,110,253,.05);">
+                <h3 style="margin:0 0 12px; font-size:14px; color: var(--accent);">Baseline</h3>
+                
+                <!-- Baseline Options Radio Buttons -->
+                <div style="margin-bottom: 16px; display: flex; gap: 16px; flex-wrap: wrap;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="baseline_option" value="live" checked onchange="toggleBaselineOptions()" style="width: auto; margin: 0;" />
+                    <span>Live Request</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="radio" name="baseline_option" value="json" onchange="toggleBaselineOptions()" style="width: auto; margin: 0;" />
+                    <span>Baseline JSON</span>
+                  </label>
+                </div>
+
+                <!-- Live Request Fields -->
+                <div id="baseline_live_fields">
+                  <div>
+                    <label>Base URL</label>
+                    <input name="base_url" value="http://localhost:8001" placeholder="https://api.example.com" />
+                    <div class="help" style="margin-top: 4px;">Note: Use <code>demo-target:8001</code> when testing from Docker, or <code>localhost:8001</code> for external APIs</div>
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label>Endpoint Path</label>
+                    <input name="endpoint" value="/play?v=1" placeholder="/play" />
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label>Request Type</label>
+                    <select name="baseline_request_type" style="width: 100%;" onchange="toggleRequestBody('baseline', this.value)">
+                      <option value="GET" selected>GET</option>
+                      <option value="POST">POST</option>
+                      <option value="PUT">PUT</option>
+                      <option value="DELETE">DELETE</option>
+                    </select>
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label>Headers JSON (optional; not stored)</label>
+                    <textarea name="baseline_headers_json" class="json" placeholder='{"Authorization": "Bearer ..."}'></textarea>
+                    <div class="help">Not stored on disk. Avoid long-lived tokens.</div>
+                  </div>
+                  <div style="margin-top: 10px;">
+                    <label>Query params JSON (optional)</label>
+                    <textarea name="baseline_params_json" class="json" placeholder='{"v": 1}'></textarea>
+                    <div class="help">Example: <code>{"v": 1, "device": "tv"}</code></div>
+                  </div>
+                  <div style="margin-top: 10px; display: none;" id="baseline_request_body_container">
+                    <label>Request Body JSON (optional, for POST/PUT)</label>
+                    <textarea name="baseline_request_body_json" class="json" placeholder='{"key": "value"}'></textarea>
+                    <div class="help">Request body for POST/PUT requests.</div>
+                  </div>
+                  <div style="margin-top: 16px;">
+                    <button type="button" class="btn primary" onclick="checkBaselineRequest()">Check Baseline Request</button>
+                  </div>
+                </div>
+
+                <!-- Baseline JSON Override Field -->
+                <div id="baseline_json_fields" style="display: none;">
+                  <div>
+                    <label>Baseline JSON</label>
+                    <textarea name="baseline_json" class="json" placeholder='{"example": "paste full baseline JSON here"}'></textarea>
+                    <div class="help">Paste the full baseline JSON response here.</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label>Endpoint path</label>
-                <input name="endpoint" value="{{ default_endpoint }}" placeholder="/play" />
+
+              <!-- Candidate Section -->
+              <div style="flex: 1; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; background: rgba(25,135,84,.05);">
+                <h3 style="margin:0 0 12px; font-size:14px; color: var(--good);">Candidate</h3>
+                <div>
+                  <label>Base URL</label>
+                  <input name="candidate_base_url" value="http://localhost:8001" placeholder="https://api.example.com" />
+                  <div class="help" style="margin-top: 4px;">Note: Use <code>demo-target:8001</code> when testing from Docker, or <code>localhost:8001</code> for external APIs</div>
+                </div>
+                <div style="margin-top: 10px;">
+                  <label>Endpoint Path</label>
+                  <input name="candidate_endpoint" value="/play?v=2" placeholder="/play" />
+                </div>
+                <div style="margin-top: 10px;">
+                  <label>Request Type</label>
+                  <select name="candidate_request_type" style="width: 100%;" onchange="toggleRequestBody('candidate', this.value)">
+                    <option value="GET" selected>GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                  </select>
+                </div>
+                <div style="margin-top: 10px;">
+                  <label>Headers JSON (optional; not stored)</label>
+                  <textarea name="candidate_headers_json" class="json" placeholder='{"Authorization": "Bearer ..."}'></textarea>
+                  <div class="help">Not stored on disk. Avoid long-lived tokens.</div>
+                </div>
+                <div style="margin-top: 10px;">
+                  <label>Query params JSON (optional)</label>
+                  <textarea name="candidate_params_json" class="json" placeholder='{"v": 2}'></textarea>
+                  <div class="help">Example: <code>{"v": 2, "device": "tv"}</code></div>
+                </div>
+                <div style="margin-top: 10px; display: none;" id="candidate_request_body_container">
+                  <label>Request Body JSON (optional, for POST/PUT)</label>
+                  <textarea name="candidate_request_body_json" class="json" placeholder='{"key": "value"}'></textarea>
+                  <div class="help">Request body for POST/PUT requests.</div>
+                </div>
+                <div style="margin-top: 16px;">
+                  <button type="button" class="btn good" onclick="checkCandidateRequest()">Check Candidate Request</button>
+                </div>
               </div>
             </div>
 
-            <details style="margin-top:10px;">
-              <summary>Advanced (headers, params, paste JSON)</summary>
-              <div style="margin-top:10px;">
-                <label>Query params JSON (optional)</label>
-                <textarea name="params_json" class="json" placeholder='{"v": 1}'></textarea>
-                <div class="help">Example: <code>{"v": 1, "device": "tv"}</code></div>
-              </div>
-              <div style="margin-top:10px;">
-                <label>Headers JSON (optional; not stored)</label>
-                <textarea name="headers_json" class="json" placeholder='{"Authorization": "Bearer ..."}'></textarea>
-                <div class="help">Not stored on disk. Avoid long-lived tokens.</div>
-              </div>
-              <div style="margin-top:10px;">
-                <label>Baseline JSON (optional override)</label>
-                <textarea name="baseline_json" class="json" placeholder='{"example": "paste full baseline JSON here"}'></textarea>
-                <div class="help">Leave empty to fetch live from the endpoint.</div>
-              </div>
-              <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn" type="button" onclick="prettifyAll()">Prettify JSON fields</button>
-                <button class="btn" type="button" onclick="clearSeedAdvanced()">Clear advanced fields</button>
-              </div>
-            </details>
+            <!-- Action Buttons -->
+            <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn" type="button" onclick="prettifyAll()">Prettify JSON fields</button>
+            </div>
 
             <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-              <button class="btn primary" type="submit">Save baseline scenario</button>
+              <button class="btn primary" type="submit">Save Scenario</button>
+              <button class="btn good" type="button" onclick="dryRunScenario()">Dry Run Scenario</button>
+              <button class="btn" type="button" onclick="clearSeedAdvanced()">Clear all fields</button>
               <button class="btn" type="button" onclick="fillSeedExample()">Fill example</button>
             </div>
           </form>
+      </div>
+    </div>
+
+    <!-- Tab 4: Swagger Analyzer -->
+    <div id="tab-swagger" class="tab-content">
+      <div class="card">
+        <h2>🔍 Swagger/OpenAPI Analyzer</h2>
+        <p class="muted">Test all endpoints in your Swagger spec for broken links, auth issues, and timeouts</p>
+      </div>
+
+      <div class="card">
+        <h2>Analyze Swagger Specification</h2>
+        <form id="analyzeForm">
+          <div style="margin-bottom: 16px; padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Input Method</label>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="radio" name="input_method" value="url" checked onchange="toggleSwaggerInputMethod()" style="width: auto; margin: 0;" />
+                <span>From URL</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="radio" name="input_method" value="file" onchange="toggleSwaggerInputMethod()" style="width: auto; margin: 0;" />
+                <span>Upload JSON File</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="radio" name="input_method" value="sample" onchange="toggleSwaggerInputMethod()" style="width: auto; margin: 0;" />
+                <span>Load Sample</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="swagger-url-input">
+            <label>Swagger/OpenAPI URL</label>
+            <input type="url" name="swagger_url" id="swagger_url" placeholder="https://api.example.com/openapi.json" />
+            <div class="help">URL to your OpenAPI spec (JSON or YAML). Can be /docs, /openapi.json, or /swagger.json</div>
+          </div>
+
+          <div id="swagger-file-input" style="display: none;">
+            <label>Upload Swagger/OpenAPI JSON File</label>
+            <input type="file" name="swagger_file" id="swagger_file" accept=".json,.yaml,.yml" />
+            <div class="help">Upload a Swagger/OpenAPI specification file (JSON or YAML format)</div>
+          </div>
+
+          <div id="swagger-sample-input" style="display: none;">
+            <label>Sample Swagger JSON</label>
+            <button type="button" class="btn" onclick="loadSampleSwagger()" style="margin-bottom: 8px;">Load Sample Swagger JSON</button>
+            <textarea name="swagger_json" id="swagger_json" class="json" placeholder='Paste or load sample Swagger/OpenAPI JSON here...' style="min-height: 200px;"></textarea>
+            <div class="help">Load a sample Swagger JSON to detect common issues and test the analyzer</div>
+          </div>
+
+          <label>Base URL (optional override)</label>
+          <input type="text" name="base_url" placeholder="https://api.example.com" />
+          <div class="help">Override the base URL from the spec. Leave empty to use spec's servers[0].url</div>
+
+          <label>Headers (JSON, optional)</label>
+          <textarea name="headers_json" class="json" placeholder='{"Authorization": "Bearer token"}'></textarea>
+          <div class="help">Optional headers for authenticated endpoints</div>
+
+          <div class="row" style="margin-top:10px;">
+            <div>
+              <label>Timeout (seconds)</label>
+              <input type="number" name="timeout" value="10" min="1" max="60" />
+            </div>
+            <div style="display: flex; align-items: flex-end; padding-top: 8px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                <input type="checkbox" name="test_all" id="test_all" style="width: auto; margin: 0;" />
+                <span>Test all methods (not just GET)</span>
+              </label>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button type="submit" class="btn primary" id="submitBtn">Analyze Endpoints</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="swagger-loading" class="card" style="display: none; text-align: center; padding: 40px;">
+        <div style="border: 3px solid var(--border); border-top: 3px solid var(--accent); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 16px;"></div>
+        <div>Analyzing endpoints...</div>
+      </div>
+
+      <div id="swagger-results" style="display: none;">
+        <div class="card">
+          <h2>Analysis Results</h2>
+          <div class="stats-grid" id="swagger-stats"></div>
+          <div class="card" style="margin-top: 16px; background: rgba(13,110,253,.05); border: 1px solid rgba(13,110,253,.25);" id="swagger-recommendations"></div>
         </div>
 
-        <div>
-          <h3 style="margin:0 0 10px; font-size:14px;">2) Run validation using a stored baseline</h3>
-          {% if scenarios|length == 0 %}
-            <div class="alert" style="background: rgba(0,0,0,.14);">
-              <div class="small">No scenarios yet. Seed a baseline on the left (or use demo mode).</div>
-            </div>
-          {% else %}
-            <form method="post" action="/run_custom" id="runForm">
-              <label>Scenario</label>
-              <select name="scenario_id">
-                {% for s in scenarios %}
-                  <option value="{{ s.scenario_id }}">
-                    {{ (s.name if s.name else s.endpoint) }} — {{ s.base_url }}
-                  </option>
-                {% endfor %}
-              </select>
-              <div class="help">Leave overrides blank to use the scenario’s stored base URL + endpoint.</div>
-
-              <div class="row" style="margin-top:10px;">
-                <div>
-                  <label>Candidate base URL (optional override)</label>
-                  <input name="candidate_base_url" placeholder="https://api.example.com" />
-                </div>
-                <div>
-                  <label>Candidate endpoint path (optional override)</label>
-                  <input name="candidate_endpoint" placeholder="/play" />
-                </div>
-              </div>
-
-              <details style="margin-top:10px;">
-                <summary>Advanced (headers, params, paste JSON)</summary>
-                <div style="margin-top:10px;">
-                  <label>Candidate query params JSON (optional)</label>
-                  <textarea name="candidate_params_json" class="json" placeholder='{"v": 2}'></textarea>
-                </div>
-                <div style="margin-top:10px;">
-                  <label>Headers JSON (optional; not stored)</label>
-                  <textarea name="headers_json" class="json" placeholder='{"Authorization": "Bearer ..."}'></textarea>
-                  <p class="muted" style="font-size:11px; margin:4px 0 0 0;">Not stored on disk. Avoid long-lived tokens.</p>
-                </div>
-                <div style="margin-top:10px;">
-                  <label>Candidate JSON (optional override)</label>
-                  <textarea name="candidate_json" class="json" placeholder='{"example": "paste full candidate JSON here"}'></textarea>
-                  <p class="muted" style="font-size:11px; margin:4px 0 0 0;">Leave empty to fetch live from the endpoint. <b>If provided, no network call is made.</b></p>
-                </div>
-                <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
-                  <button class="btn" type="button" onclick="prettifyAll()">Prettify JSON fields</button>
-                  <button class="btn" type="button" onclick="clearRunAdvanced()">Clear advanced fields</button>
-                </div>
-              </details>
-
-              <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-                <button class="btn primary" type="submit">Run validation</button>
-                <button class="btn" type="button" onclick="fillRunExample()">Fill example</button>
-              </div>
-            </form>
-          {% endif %}
+        <div class="card">
+          <h2>Endpoint Details</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Path</th>
+                <th>Status</th>
+                <th>Status Code</th>
+                <th>Response Time</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody id="swagger-endpoints-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
 
-  <div class="card">
-    <h2>Scenario Repository</h2>
-    {% if scenarios|length == 0 %}
-      <p class="muted">No scenarios yet. Click "Seed baseline scenario".</p>
-    {% else %}
-      <table>
-        <thead><tr><th>Scenario ID</th><th>Name</th><th>Base URL</th><th>Endpoint</th><th>Tags</th><th>Updated</th></tr></thead>
-        <tbody>
-          {% for s in scenarios %}
-            <tr>
-              <td><code>{{ s.scenario_id }}</code></td>
-              <td>{{ s.name }}</td>
-              <td><code>{{ s.base_url }}</code></td>
-              <td><code>{{ s.endpoint }}</code></td>
-              <td>{{ ", ".join(s.tags) }}</td>
-              <td class="muted">{{ s.updated_at_human }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% endif %}
-  </div>
+    <!-- Request/Response Modal -->
+      <div id="requestModal" class="modal-overlay" onclick="if(event.target === this) closeRequestModal()">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 class="modal-title">Request/Response Details</h3>
+            <button class="modal-close" onclick="closeRequestModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="request-details">
+              <h4 style="margin:0 0 10px; font-size:14px;">Request</h4>
+              <div class="detail-section">
+                <div class="detail-label">Method & URL</div>
+                <div class="detail-value" id="modal-request-url" style="word-break: break-all; max-width: 100%; overflow-wrap: break-word;"></div>
+              </div>
+              <div class="detail-section" id="modal-request-headers-section" style="display:none;">
+                <div class="detail-label">Headers</div>
+                <div class="detail-value" id="modal-request-headers"></div>
+              </div>
+              <div class="detail-section" id="modal-request-params-section" style="display:none;">
+                <div class="detail-label">Query Parameters</div>
+                <div class="detail-value" id="modal-request-params"></div>
+              </div>
+              <div class="detail-section" id="modal-request-body-section" style="display:none;">
+                <div class="detail-label">Request Body</div>
+                <div class="detail-value" id="modal-request-body"></div>
+              </div>
+            </div>
+            <div class="response-details">
+              <h4 style="margin:0 0 10px; font-size:14px;">Response</h4>
+              <div class="detail-section">
+                <div class="detail-label">Status Code</div>
+                <div class="detail-value">
+                  <span id="modal-response-status"></span>
+                  <span id="modal-response-status-badge" class="status-badge"></span>
+                </div>
+              </div>
+              <div class="detail-section" id="modal-response-headers-section" style="display:none;">
+                <div class="detail-label">Response Headers</div>
+                <div class="detail-value" id="modal-response-headers"></div>
+              </div>
+              <div class="detail-section">
+                <div class="detail-label">Response Body</div>
+                <div class="detail-value" id="modal-response-body"></div>
+              </div>
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+              <button class="btn" type="button" onclick="copyResponseToClipboard()">Copy Response</button>
+              <button class="btn" type="button" onclick="closeRequestModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>Recent Runs</h2>
-    {% if runs|length == 0 %}
-      <p class="muted">No runs yet. Click "Run validation".</p>
-    {% else %}
-      <table>
-        <thead><tr><th>Run ID</th><th>Endpoint</th><th>Candidate</th><th>Risk</th><th>Decision</th><th>Report</th><th>Time</th></tr></thead>
-        <tbody>
-          {% for r in runs %}
-            <tr>
-              <td><code>{{ r.run_id }}</code></td>
-              <td><code>{{ r.endpoint }}</code></td>
-              <td class="muted">
-                {% if r.candidate_url %}<code>{{ r.candidate_url }}</code>{% else %}v{{ r.candidate_version }}{% endif %}
-              </td>
-              <td>{{ r.risk_score }}</td>
-              <td><span class="badge">{{ r.action }}</span></td>
-              <td><a href="/runs/{{ r.run_id }}/report">Open report</a></td>
-              <td class="muted">{{ r.created_at_human }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% endif %}
-  </div>
+      <!-- About Modal -->
+      <div id="aboutModal" class="modal-overlay" onclick="if(event.target === this) closeAboutModal()">
+        <div class="modal" style="max-width: 1000px; max-height: 90vh; overflow-y: auto;">
+          <div class="modal-header">
+            <h3 class="modal-title">About QoE-Guard</h3>
+            <button class="modal-close" onclick="closeAboutModal()">&times;</button>
+          </div>
+          <div class="modal-body" id="about-content">
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin: 0 0 12px; font-size: 18px; color: var(--accent);">Overview</h4>
+              <p style="margin: 0 0 16px; color: var(--text); line-height: 1.6;">
+                QoE-Guard is a Quality of Experience (QoE) aware API validation system that automatically detects 
+                breaking changes and quality degradation in streaming API responses. It compares baseline and candidate 
+                API responses to calculate risk scores and provide actionable insights.
+              </p>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin: 0 0 12px; font-size: 18px; color: var(--accent);">Workflow</h4>
+              <div style="padding: 16px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                <ol style="margin: 0; padding-left: 20px; line-height: 2;">
+                  <li><strong>Create Scenario:</strong> Define a baseline API response (from live request or pasted JSON) and candidate endpoint configuration.</li>
+                  <li><strong>Dry Run:</strong> Test the scenario without saving to see immediate validation results.</li>
+                  <li><strong>Save Scenario:</strong> Store the baseline scenario for future validation runs.</li>
+                  <li><strong>Execute Scenarios:</strong> Run saved scenarios against candidate endpoints to detect changes.</li>
+                  <li><strong>Review Results:</strong> Analyze risk scores, status decisions, and detailed change reports.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin: 0 0 12px; font-size: 18px; color: var(--accent);">Key Features</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px;">
+                  <strong style="color: var(--accent);">🔍 Scenario Generator</strong>
+                  <p style="margin: 8px 0 0; font-size: 13px; color: var(--muted);">
+                    Create and manage validation scenarios with baseline and candidate configurations. Support for live requests and JSON baselines.
+                  </p>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px;">
+                  <strong style="color: var(--accent);">⚡ Scenario Execution</strong>
+                  <p style="margin: 8px 0 0; font-size: 13px; color: var(--muted);">
+                    Run multiple scenarios in batch, with configurable base URLs and endpoint paths for baseline and candidate.
+                  </p>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px;">
+                  <strong style="color: var(--accent);">📊 Execution Results</strong>
+                  <p style="margin: 8px 0 0; font-size: 13px; color: var(--muted);">
+                    View analytics, risk score trends, status distributions, and detailed validation reports with change diffs.
+                  </p>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px;">
+                  <strong style="color: var(--accent);">🔍 Swagger Analyzer</strong>
+                  <p style="margin: 8px 0 0; font-size: 13px; color: var(--muted);">
+                    Analyze OpenAPI/Swagger specifications, test all endpoints, and identify broken links, auth issues, and timeouts.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin: 0 0 12px; font-size: 18px; color: var(--accent);">Risk Score Calculation</h4>
+              <p style="margin: 0 0 12px; color: var(--text); line-height: 1.6;">
+                The risk score is calculated using a <strong>real-time algorithm</strong> (not mock data) that analyzes actual differences 
+                between baseline and candidate API responses. The calculation follows these steps:
+              </p>
+              
+              <div style="margin-bottom: 16px;">
+                <h5 style="margin: 0 0 8px; font-size: 16px; color: var(--accent);">Step 1: Feature Extraction</h5>
+                <p style="margin: 0 0 12px; font-size: 13px; color: var(--muted);">
+                  The system extracts numerical features from JSON differences:
+                </p>
+                <ul style="margin: 0 0 12px; padding-left: 20px; font-size: 13px; color: var(--text);">
+                  <li><strong>Critical Changes:</strong> Changes to critical API paths (weight: 18%)</li>
+                  <li><strong>Type Changes:</strong> Data type changes - breaking changes (weight: 14%)</li>
+                  <li><strong>Removed Fields:</strong> Fields removed from response (weight: 10%)</li>
+                  <li><strong>Added Fields:</strong> New fields added (weight: 5%)</li>
+                  <li><strong>Array Length Changes:</strong> Changes in array sizes (weight: 7%)</li>
+                  <li><strong>Max Numeric Delta:</strong> Largest numeric value change (weight: 16%)</li>
+                  <li><strong>Numeric Delta Sum:</strong> Sum of all numeric changes (weight: 6%)</li>
+                  <li><strong>Value Changes:</strong> Total number of value changes (weight: 4%)</li>
+                </ul>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <h5 style="margin: 0 0 8px; font-size: 16px; color: var(--accent);">Step 2: Weighted Linear Combination</h5>
+                <p style="margin: 0 0 12px; font-size: 13px; color: var(--muted);">
+                  Each feature is multiplied by its weight and summed together. A bias of -1.2 is applied to default to low risk unless there's evidence.
+                </p>
+                <div style="padding: 12px; background: rgba(0,0,0,.03); border-radius: 4px; font-family: monospace; font-size: 12px;">
+                  raw_score = Σ(feature_value × weight) - 1.2
+                </div>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <h5 style="margin: 0 0 8px; font-size: 16px; color: var(--accent);">Step 3: Sigmoid Normalization</h5>
+                <p style="margin: 0 0 12px; font-size: 13px; color: var(--muted);">
+                  The raw score is normalized using a sigmoid function to produce a score between 0.0 and 1.0:
+                </p>
+                <div style="padding: 12px; background: rgba(0,0,0,.03); border-radius: 4px; font-family: monospace; font-size: 12px;">
+                  risk_score = 1 / (1 + e^(-raw_score))
+                </div>
+              </div>
+
+              <div style="margin-bottom: 16px;">
+                <h5 style="margin: 0 0 8px; font-size: 16px; color: var(--accent);">Step 4: Policy Decision</h5>
+                <p style="margin: 0 0 12px; font-size: 13px; color: var(--muted);">
+                  The final risk score is compared against policy thresholds:
+                </p>
+                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text);">
+                  <li><strong>FAIL:</strong> Risk score ≥ 72% OR (≥3 critical changes + ≥1 type change)</li>
+                  <li><strong>WARN:</strong> Risk score ≥ 45% OR ≥2 critical changes</li>
+                  <li><strong>PASS:</strong> Risk score < 45%</li>
+                </ul>
+              </div>
+
+              <div style="padding: 12px; background: rgba(13,110,253,.1); border-left: 3px solid var(--accent); border-radius: 4px; margin-top: 16px;">
+                <p style="margin: 0; font-size: 13px; color: var(--text);">
+                  <strong>💡 Tip:</strong> Click the info icon (ℹ️) next to any risk score in validation results to see a detailed breakdown 
+                  of the calculation with feature contributions, raw scores, and policy decisions.
+                </p>
+              </div>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin: 0 0 12px; font-size: 18px; color: var(--accent);">Change Detection</h4>
+              <p style="margin: 0 0 12px; color: var(--text); line-height: 1.6; font-size: 13px;">
+                The system performs deep JSON comparison to detect:
+              </p>
+              <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text);">
+                <li>Added, removed, or modified fields at any nesting level</li>
+                <li>Type changes (e.g., string → number, array → object)</li>
+                <li>Array length changes</li>
+                <li>Numeric value deltas</li>
+                <li>Path-level diffs for audit trails</li>
+              </ul>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin: 0 0 12px; font-size: 18px; color: var(--accent);">Security & Best Practices</h4>
+              <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text); line-height: 1.8;">
+                <li><strong>Headers:</strong> Headers are only used for requests and are <strong>not stored on disk</strong>. Use short-lived tokens.</li>
+                <li><strong>Baseline:</strong> Seed baselines from stable "known-good" responses (production or validated staging).</li>
+                <li><strong>Validation:</strong> Test candidate versions (staging, canary, new releases) against baselines before deployment.</li>
+                <li><strong>Explainability:</strong> All reports include top signals and path-level diffs for audit and debugging.</li>
+              </ul>
+            </div>
+
+            <div style="margin-bottom: 24px;">
+              <h4 style="margin: 0 0 12px; font-size: 18px; color: var(--accent);">Technologies and Tools</h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;">
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">Backend Framework</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>FastAPI - Modern Python web framework</li>
+                    <li>Uvicorn - ASGI server</li>
+                    <li>Pydantic - Data validation</li>
+                    <li>SQLAlchemy - ORM & database</li>
+                    <li>Jinja2 - Template engine</li>
+                  </ul>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">HTTP & API</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>Requests - HTTP client</li>
+                    <li>HTTPX - Async HTTP client</li>
+                    <li>OpenAPI Spec Validator</li>
+                    <li>JSONSchema - Schema validation</li>
+                    <li>PyYAML - YAML parsing</li>
+                  </ul>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">AI/ML Libraries</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>scikit-learn - ML algorithms</li>
+                    <li>XGBoost - Gradient boosting</li>
+                    <li>LightGBM - Fast gradient boosting</li>
+                    <li>SHAP - Explainable AI</li>
+                    <li>Transformers - NLP models</li>
+                    <li>Sentence Transformers - Embeddings</li>
+                    <li>spaCy - NLP processing</li>
+                  </ul>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">LLM Providers</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>OpenAI GPT-4</li>
+                    <li>Anthropic Claude</li>
+                    <li>Groq - Fast inference</li>
+                  </ul>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">Frontend</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>HTML5 & CSS3</li>
+                    <li>JavaScript (ES6+)</li>
+                    <li>Chart.js - Data visualization</li>
+                    <li>Vanilla JS - No frameworks</li>
+                  </ul>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">Testing & Quality</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>pytest - Testing framework</li>
+                    <li>pytest-cov - Coverage</li>
+                    <li>Allure - Test reporting</li>
+                    <li>pytest-asyncio - Async tests</li>
+                  </ul>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">Data Science</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>NumPy - Numerical computing</li>
+                    <li>Pandas - Data manipulation</li>
+                    <li>SciPy - Scientific computing</li>
+                    <li>PyTorch - Deep learning</li>
+                  </ul>
+                </div>
+                <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; border-left: 3px solid var(--accent);">
+                  <strong style="color: var(--accent); font-size: 14px;">Infrastructure</strong>
+                  <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 12px; color: var(--text);">
+                    <li>Docker - Containerization</li>
+                    <li>Docker Compose - Orchestration</li>
+                    <li>Python 3.11+</li>
+                    <li>JSON file storage</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding: 16px; background: rgba(13,110,253,.05); border-radius: 4px; border: 1px solid rgba(13,110,253,.2);">
+              <h4 style="margin: 0 0 8px; font-size: 16px; color: var(--accent);">Technical Details</h4>
+              <p style="margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6;">
+                QoE-Guard uses a weighted linear model with sigmoid activation for risk scoring. The algorithm is designed to be 
+                interpretable and auditable, with clear feature contributions and policy-based decision making. All calculations 
+                are performed in real-time based on actual API response differences.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Run Report Modal -->
+      <div id="runReportModal" class="modal-overlay" onclick="if(event.target === this) window.closeRunReportModal()">
+        <div class="modal" style="max-width: 1400px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Validation Run Report</h3>
+            <button class="modal-close" onclick="window.closeRunReportModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <!-- Validation Results Summary -->
+            <div style="margin-bottom: 20px; padding: 16px; background: rgba(13,110,253,.05); border-radius: var(--radius); border: 1px solid var(--border);">
+              <h4 style="margin:0 0 12px; font-size:16px; font-weight: 600;">Validation Results</h4>
+              <div id="report-validation-results">
+                <div class="detail-value">Loading...</div>
+              </div>
+            </div>
+            
+            <div class="row" style="gap: 20px;">
+              <!-- Baseline Results -->
+              <div style="flex: 1;">
+                <h4 style="margin:0 0 12px; font-size:14px; color: var(--accent);">Baseline</h4>
+                <div class="detail-section">
+                  <div class="detail-label">Request Details</div>
+                  <div class="detail-value" id="report-baseline-request" style="font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Status Code</div>
+                  <div class="detail-value" style="display: flex; align-items: center; gap: 8px;">
+                    <span id="report-baseline-status"></span>
+                    <span id="report-baseline-status-badge" class="status-badge"></span>
+                  </div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Response Body</div>
+                  <div class="detail-value" id="report-baseline-body" style="max-height: 400px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+              </div>
+              <!-- Candidate Results -->
+              <div style="flex: 1;">
+                <h4 style="margin:0 0 12px; font-size:14px; color: var(--good);">Candidate</h4>
+                <div class="detail-section">
+                  <div class="detail-label">Request Details</div>
+                  <div class="detail-value" id="report-candidate-request" style="font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Status Code</div>
+                  <div class="detail-value" style="display: flex; align-items: center; gap: 8px;">
+                    <span id="report-candidate-status"></span>
+                    <span id="report-candidate-status-badge" class="status-badge"></span>
+                  </div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Response Body</div>
+                  <div class="detail-value" id="report-candidate-body" style="max-height: 400px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:20px; padding-top: 20px; border-top: 1px solid var(--border);">
+              <h4 style="margin:0 0 12px; font-size:14px;">Audit Data - Changes Detected</h4>
+              <div class="detail-section" id="report-comparison-summary">
+                <div class="detail-value">Loading comparison...</div>
+              </div>
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+              <button class="btn" type="button" onclick="window.closeRunReportModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Scenario Modal -->
+      <div id="editScenarioModal" class="modal-overlay" onclick="if(event.target === this) window.closeEditScenarioModal()">
+        <div class="modal" style="max-width: 600px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Edit Scenario</h3>
+            <button class="modal-close" onclick="window.closeEditScenarioModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <form id="editScenarioForm" onsubmit="window.saveEditedScenario(event)">
+              <input type="hidden" id="edit-scenario-id" />
+              <div style="margin-bottom: 16px;">
+                <label>Scenario Name</label>
+                <input type="text" id="edit-scenario-name" required style="width: 100%;" />
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label>Baseline Endpoint Path</label>
+                <input type="text" id="edit-baseline-endpoint" placeholder="/play?v=1" style="width: 100%;" />
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label>Candidate Endpoint Path</label>
+                <input type="text" id="edit-candidate-endpoint" placeholder="/play?v=2" style="width: 100%;" />
+              </div>
+              <div style="margin-bottom: 16px;">
+                <label>Tags (comma-separated)</label>
+                <input type="text" id="edit-scenario-tags" placeholder="pay, v2" style="width: 100%;" />
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn">Save Changes</button>
+                <button type="button" class="btn" style="background: var(--muted);" onclick="window.closeEditScenarioModal()">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dry Run Comparison Modal -->
+      <div id="dryRunModal" class="modal-overlay" onclick="if(event.target === this) closeDryRunModal()">
+        <div class="modal" style="max-width: 1400px;">
+          <div class="modal-header">
+            <h3 class="modal-title">Dry Run Scenario - Validation Results</h3>
+            <button class="modal-close" onclick="closeDryRunModal()">&times;</button>
+          </div>
+          <div class="modal-body">
+            <!-- Validation Results Summary -->
+            <div style="margin-bottom: 20px; padding: 16px; background: rgba(13,110,253,.05); border-radius: var(--radius); border: 1px solid var(--border);">
+              <h4 style="margin:0 0 12px; font-size:16px; font-weight: 600;">Validation Results</h4>
+              <div id="dryrun-validation-results">
+                <div class="detail-value">Loading validation...</div>
+              </div>
+            </div>
+            
+            <div class="row" style="gap: 20px;">
+              <!-- Baseline Results -->
+              <div style="flex: 1;">
+                <h4 style="margin:0 0 12px; font-size:14px; color: var(--accent);">Baseline</h4>
+                <div class="detail-section">
+                  <div class="detail-label">Request Details</div>
+                  <div class="detail-value" id="dryrun-baseline-request" style="max-height: 200px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Status Code</div>
+                  <div class="detail-value">
+                    <span id="dryrun-baseline-status"></span>
+                    <span id="dryrun-baseline-status-badge" class="status-badge"></span>
+                  </div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Response Body</div>
+                  <div class="detail-value" id="dryrun-baseline-body" style="max-height: 400px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+              </div>
+              <!-- Candidate Results -->
+              <div style="flex: 1;">
+                <h4 style="margin:0 0 12px; font-size:14px; color: var(--good);">Candidate</h4>
+                <div class="detail-section">
+                  <div class="detail-label">Request Details</div>
+                  <div class="detail-value" id="dryrun-candidate-request" style="max-height: 200px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Status Code</div>
+                  <div class="detail-value">
+                    <span id="dryrun-candidate-status"></span>
+                    <span id="dryrun-candidate-status-badge" class="status-badge"></span>
+                  </div>
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Response Body</div>
+                  <div class="detail-value" id="dryrun-candidate-body" style="max-height: 400px; overflow-y: auto; font-size: 12px; white-space: pre-wrap;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:20px; padding-top: 20px; border-top: 1px solid var(--border);">
+              <h4 style="margin:0 0 12px; font-size:14px;">Audit Data - Changes Detected</h4>
+              <div class="detail-section" id="dryrun-comparison-summary">
+                <div class="detail-value">Loading comparison...</div>
+              </div>
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px;">
+              <button class="btn" type="button" onclick="closeDryRunModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Scenario Execution -->
+    <div id="tab-execution" class="tab-content">
+      <div class="card">
+        <h2>Run Selected Scenarios</h2>
+        <div class="row" style="margin-bottom: 16px;">
+          <div>
+            <label>Baseline Base URL</label>
+            <input id="baseline_base_url" name="baseline_base_url" value="http://localhost:8001" placeholder="http://localhost:8001" />
+            <div class="help">Base URL for baseline requests</div>
+          </div>
+          <div>
+            <label>Candidate Base URL</label>
+            <input id="candidate_base_url" name="candidate_base_url" value="http://localhost:8001" placeholder="http://localhost:8001" />
+            <div class="help">Base URL for candidate requests</div>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <button class="btn primary" type="button" onclick="runSelectedScenarios()">Run Selected Scenarios</button>
+          <button class="btn bad" type="button" onclick="deleteSelectedScenarios()">Delete Selected Scenarios</button>
+          <button class="btn" type="button" onclick="selectAllScenarios()">Select All</button>
+          <button class="btn" type="button" onclick="deselectAllScenarios()">Deselect All</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h2>Scenario Repository</h2>
+        {% if scenarios|length == 0 %}
+          <p class="muted">No scenarios yet. Go to "Scenario Generator" tab to create a baseline scenario first.</p>
+        {% else %}
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;"><input type="checkbox" id="select-all-checkbox" onchange="toggleAllScenarios(this.checked)" /></th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Baseline Endpoint Path</th>
+                <th>Candidate Endpoint Path</th>
+                <th>Tags</th>
+                <th>Updated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in scenarios %}
+                <tr>
+                  <td><input type="checkbox" class="scenario-checkbox" value="{{ s.scenario_id }}" /></td>
+                  <td><code>{{ s.scenario_id }}</code></td>
+                  <td>{{ s.name }}</td>
+                  <td>
+                    <input type="text" class="baseline-endpoint-input" data-scenario-id="{{ s.scenario_id }}" value="{{ s.baseline_endpoint if s.baseline_endpoint else s.endpoint }}" placeholder="/play" style="width: 100%; font-size: 12px; padding: 4px;" />
+                  </td>
+                  <td>
+                    <input type="text" class="candidate-endpoint-input" data-scenario-id="{{ s.scenario_id }}" value="{{ s.candidate_endpoint if s.candidate_endpoint else s.endpoint }}" placeholder="/play" style="width: 100%; font-size: 12px; padding: 4px;" />
+                  </td>
+                  <td>{{ ", ".join(s.tags) }}</td>
+                  <td class="muted">{{ s.updated_at_human }}</td>
+                  <td>
+                    <button class="btn" style="padding: 4px 8px; font-size: 12px;" onclick="window.editScenario({{ s.scenario_id }}, '{{ s.name|replace("'", "\\'") }}', '{{ (s.baseline_endpoint if s.baseline_endpoint else s.endpoint)|replace("'", "\\'") }}', '{{ (s.candidate_endpoint if s.candidate_endpoint else s.endpoint)|replace("'", "\\'") }}', '{{ ", ".join(s.tags)|replace("'", "\\'") }}')">Edit</button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Tab 3: Execution Results -->
+    <div id="tab-results" class="tab-content">
+      {% if runs|length == 0 %}
+        <div class="card">
+          <h2>Execution Results</h2>
+          <p class="muted">No runs yet. Go to "Scenario Execution" tab to run validations.</p>
+        </div>
+      {% else %}
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Runs</div>
+            <div class="stat-value">{{ runs|length }}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pass Rate</div>
+            <div class="stat-value" id="pass-rate">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Risk Score</div>
+            <div class="stat-value" id="avg-risk">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Failures</div>
+            <div class="stat-value" id="fail-count">-</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+          <div class="card chart-card">
+            <h2>Risk Score Trend</h2>
+            <div class="chart-container">
+              <canvas id="riskTrendChart"></canvas>
+            </div>
+          </div>
+          <div class="card chart-card">
+            <h2>Status Distribution</h2>
+            <div class="chart-container">
+              <canvas id="decisionChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <h2>Risk Score Distribution</h2>
+          <div class="chart-container">
+            <canvas id="riskDistributionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Runs Table -->
+        <div class="card">
+          <h2>Recent Validation Runs</h2>
+          
+          <!-- Status Filter -->
+          <div style="margin-bottom: 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <label style="font-size: 12px; color: var(--muted);">Filter by Status:</label>
+            <select id="statusFilter" style="width: auto; min-width: 150px;" onchange="filterRunsTable()">
+              <option value="all">All</option>
+              <option value="PASS">PASS</option>
+              <option value="WARN">WARN</option>
+              <option value="FAIL">FAIL</option>
+            </select>
+            <span id="filterCount" class="small" style="margin-left: 8px;"></span>
+          </div>
+          
+          <div class="table-container" style="overflow-x: auto;">
+            <table id="runsTable">
+              <thead><tr><th>Run ID</th><th>Scenario Name</th><th>Baseline</th><th>Candidate</th><th>Risk</th><th>Status</th><th>Report</th><th>Time</th></tr></thead>
+              <tbody>
+                {% for r in runs %}
+                  <tr data-status="{{ r.action }}">
+                    <td><code>{{ r.run_id }}</code></td>
+                    <td>{{ r.scenario_name or 'Unknown' }}</td>
+                    <td class="muted">
+                      {% if r.baseline_url %}
+                        <code title="{{ r.baseline_url }}">{{ r.baseline_url }}</code>
+                      {% elif r.scenario_base_url and r.endpoint %}
+                        {% set baseline_full_url = r.scenario_base_url ~ r.endpoint %}
+                        <code title="{{ baseline_full_url }}">{{ baseline_full_url }}</code>
+                      {% elif r.endpoint %}
+                        <code title="{{ r.endpoint }}">{{ r.endpoint }}</code>
+                      {% else %}
+                        <span class="muted">-</span>
+                      {% endif %}
+                    </td>
+                    <td class="muted">
+                      {% if r.candidate_url %}
+                        <code title="{{ r.candidate_url }}">{{ r.candidate_url }}</code>
+                      {% elif r.candidate_version %}
+                        <code title="v{{ r.candidate_version }}">v{{ r.candidate_version }}</code>
+                      {% else %}
+                        <span class="muted">-</span>
+                      {% endif %}
+                    </td>
+                    <td>{{ r.risk_score }}</td>
+                    <td><span class="badge {{ r.action|lower }}">{{ r.action }}</span></td>
+                    <td><a href="#" onclick="window.showRunReportModal('{{ r.run_id }}'); return false;">Open report</a></td>
+                    <td class="muted">{{ r.created_at_human }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {% endif %}
+    </div>
 
   <script>
+    // Analytics data from runs
+    const runsData = [
+      {% for r in runs %}
+      {
+        runId: "{{ r.get('run_id', '')|replace('"', '\\"')|replace('\n', '\\n')|replace('\r', '\\r') }}",
+        scenarioName: "{{ r.get('scenario_name', 'Unknown')|replace('"', '\\"')|replace('\n', '\\n')|replace('\r', '\\r') }}",
+        riskScore: {{ r.get('risk_score', 0) or 0 }},
+        action: "{{ r.get('action', 'UNKNOWN')|replace('"', '\\"')|replace('\n', '\\n')|replace('\r', '\\r') }}",
+        endpoint: "{{ r.get('endpoint', '')|replace('"', '\\"')|replace('\n', '\\n')|replace('\r', '\\r') }}",
+        candidate: {% if r.get('candidate_url') %}"{{ r.get('candidate_url')|replace('"', '\\"')|replace('\n', '\\n')|replace('\r', '\\r') }}"{% else %}"v{{ r.get('candidate_version', 0) }}"{% endif %},
+        timestamp: {{ r.get('created_at', 0) or 0 }},
+        timeLabel: "{{ r.get('created_at_human', '')|replace('"', '\\"')|replace('\n', '\\n')|replace('\r', '\\r') }}"
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ];
+
+    // Run Report Modal Functions - Define early for onclick handlers
+    window.showRunReportModal = async function(runId) {
+      console.log('showRunReportModal called with runId:', runId);
+      const modal = document.getElementById('runReportModal');
+      if (!modal) {
+        console.error('Run report modal not found');
+        alert('Error: Report modal not found. Please refresh the page.');
+        return;
+      }
+      console.log('Modal element found:', modal);
+      
+      // Move modal to body if it's inside a hidden container
+      if (modal.parentElement && modal.parentElement !== document.body) {
+        const parent = modal.parentElement;
+        const parentDisplay = window.getComputedStyle(parent).display;
+        if (parentDisplay === 'none') {
+          console.log('Modal parent is hidden, moving to body');
+          document.body.appendChild(modal);
+        }
+      }
+      
+      // Show modal immediately - use same approach as dry run modal
+      modal.classList.add('active');
+      
+      // Force visibility with inline styles as backup
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.opacity = '1';
+      modal.style.zIndex = '10000';
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.right = '0';
+      modal.style.bottom = '0';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      
+      // Force a reflow to ensure the class is applied
+      void modal.offsetWidth;
+      
+      // Check computed styles
+      const computed = window.getComputedStyle(modal);
+      console.log('Modal active class added. Computed display:', computed.display);
+      console.log('Modal classes:', modal.className);
+      console.log('Modal computed visibility:', computed.visibility);
+      console.log('Modal computed opacity:', computed.opacity);
+      console.log('Modal computed z-index:', computed.zIndex);
+      console.log('Modal computed position:', computed.position);
+      console.log('Modal offsetWidth:', modal.offsetWidth);
+      console.log('Modal offsetHeight:', modal.offsetHeight);
+      console.log('Modal parent:', modal.parentElement);
+      console.log('Modal parent display:', modal.parentElement ? window.getComputedStyle(modal.parentElement).display : 'N/A');
+      
+      // Check if modal is in viewport
+      const rect = modal.getBoundingClientRect();
+      console.log('Modal bounding rect:', rect);
+      
+      // Clear previous results
+      const baselineStatusEl = document.getElementById('report-baseline-status');
+      const baselineBodyEl = document.getElementById('report-baseline-body');
+      const candidateStatusEl = document.getElementById('report-candidate-status');
+      const candidateBodyEl = document.getElementById('report-candidate-body');
+      const validationResultsEl = document.getElementById('report-validation-results');
+      const comparisonSummaryEl = document.getElementById('report-comparison-summary');
+      
+      if (baselineStatusEl) baselineStatusEl.textContent = 'Loading...';
+      if (baselineBodyEl) baselineBodyEl.textContent = '';
+      if (candidateStatusEl) candidateStatusEl.textContent = 'Loading...';
+      if (candidateBodyEl) candidateBodyEl.textContent = '';
+      if (validationResultsEl) validationResultsEl.innerHTML = '<div class="detail-value">Loading...</div>';
+      if (comparisonSummaryEl) comparisonSummaryEl.innerHTML = '<div class="detail-value">Loading comparison...</div>';
+      
+      try {
+        // Fetch run data
+        console.log('Fetching run data from /api/runs/' + runId);
+        const response = await fetch(`/api/runs/${runId}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch run data: ${response.status} ${errorText}`);
+        }
+        
+        const run = await response.json();
+        console.log('Fetched run data:', run);
+        
+        // Verify modal is still visible
+        const modalCheck = document.getElementById('runReportModal');
+        if (modalCheck && !modalCheck.classList.contains('active')) {
+          console.warn('Modal lost active class, re-adding it');
+          modalCheck.classList.add('active');
+        }
+        
+        if (window.displayRunReport) {
+          console.log('Calling displayRunReport');
+          window.displayRunReport(run);
+          console.log('displayRunReport completed');
+        } else {
+          console.error('displayRunReport function not found');
+          alert('Error: displayRunReport function not found');
+        }
+      } catch (error) {
+        console.error('Error loading run report:', error);
+        if (validationResultsEl) {
+          validationResultsEl.innerHTML = `<div class="detail-value" style="color: var(--bad);">Error: ${error.message}</div>`;
+        } else {
+          alert('Error loading run report: ' + error.message);
+        }
+      }
+    };
+
+    window.closeRunReportModal = function() {
+      console.log('closeRunReportModal called');
+      const modal = document.getElementById('runReportModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = '';
+        modal.style.visibility = '';
+        modal.style.opacity = '';
+        modal.style.zIndex = '';
+        console.log('Modal closed');
+      } else {
+        console.error('Modal not found for closing');
+      }
+    };
+
+    // Make showTab function globally accessible
+    window.showTab = function(tabName, tabButton) {
+      console.log('showTab called with:', tabName);
+      
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+        content.style.visibility = 'hidden';
+        // Clear any inline styles that might interfere, especially positioning
+        content.style.opacity = '';
+        content.style.position = '';
+        content.style.left = '';
+        content.style.width = '';
+        content.style.height = '';
+        // Also reset all child elements' positioning
+        const allChildren = content.querySelectorAll('*');
+        allChildren.forEach(child => {
+          if (child.style.position === 'absolute' && child.style.left.includes('-9999')) {
+            child.style.position = '';
+            child.style.left = '';
+          }
+        });
+      });
+      
+      // Remove active class from all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected tab content
+      const selectedContent = document.getElementById(`tab-${tabName}`);
+      if (selectedContent) {
+        console.log('Showing tab content:', tabName, selectedContent);
+        selectedContent.classList.add('active');
+        selectedContent.style.display = 'block';
+        selectedContent.style.visibility = 'visible';
+        selectedContent.style.opacity = '1';
+        selectedContent.style.position = 'relative';
+        selectedContent.style.left = 'auto';
+        selectedContent.style.width = 'auto';
+        selectedContent.style.height = 'auto';
+        selectedContent.style.minHeight = '200px';
+        
+        // Ensure all child elements are visible and properly positioned
+        const allChildren = selectedContent.querySelectorAll('*');
+        allChildren.forEach(child => {
+          // Reset any off-screen positioning
+          if (child.style.position === 'absolute' && child.style.left && child.style.left.includes('-9999')) {
+            child.style.position = '';
+            child.style.left = '';
+          }
+          // Ensure form elements are visible
+          if (child.tagName === 'FORM' || child.tagName === 'INPUT' || child.tagName === 'TEXTAREA' || child.tagName === 'SELECT' || child.tagName === 'BUTTON') {
+            if (child.style.display === 'none') {
+              child.style.display = '';
+            }
+            if (child.style.visibility === 'hidden') {
+              child.style.visibility = '';
+            }
+            if (child.style.position === 'absolute' && child.style.left && parseFloat(child.style.left) < 0) {
+              child.style.position = 'relative';
+              child.style.left = 'auto';
+            }
+          }
+        });
+        
+        // Specifically ensure form is visible for generator tab
+        if (tabName === 'generator') {
+          const seedForm = document.getElementById('seedForm');
+          if (seedForm) {
+            seedForm.style.display = 'block';
+            seedForm.style.visibility = 'visible';
+            seedForm.style.position = 'relative';
+            seedForm.style.left = 'auto';
+            seedForm.style.width = '100%';
+            
+            // Ensure all form fields are visible
+            const formFields = seedForm.querySelectorAll('input, textarea, select, button, .row, div[id*="baseline"], div[id*="candidate"]');
+            formFields.forEach(field => {
+              if (field.style.display === 'none') {
+                field.style.display = '';
+              }
+              if (field.style.visibility === 'hidden') {
+                field.style.visibility = '';
+              }
+              if (field.style.position === 'absolute' && field.style.left && parseFloat(field.style.left) < 0) {
+                field.style.position = '';
+                field.style.left = '';
+              }
+            });
+            
+            // Check if form is off-screen and fix it
+            setTimeout(() => {
+              const formRect = seedForm.getBoundingClientRect();
+              console.log('Generator form bounding rect:', formRect);
+              if (formRect.left < 0 || formRect.width === 0) {
+                seedForm.style.position = 'relative';
+                seedForm.style.left = '0';
+                seedForm.style.width = '100%';
+                console.log('Fixed generator form positioning');
+              }
+            }, 50);
+          } else {
+            console.warn('seedForm not found in generator tab');
+          }
+        }
+      } else {
+        console.error(`Tab content not found: tab-${tabName}`);
+        return;
+      }
+      
+      // Add active class to clicked tab
+      if (tabButton) {
+        tabButton.classList.add('active');
+      } else {
+        // If no button provided, find it by data-tab attribute
+        const button = document.querySelector(`.tab[data-tab="${tabName}"]`);
+        if (button) {
+          button.classList.add('active');
+        }
+      }
+      
+      // Store active tab in sessionStorage
+      sessionStorage.setItem('activeTab', tabName);
+      
+      // Initialize analytics when results tab is shown
+      if (tabName === 'results') {
+        setTimeout(initAnalytics, 100);
+      }
+      
+      // Initialize Swagger Analyzer when swagger tab is shown
+      if (tabName === 'swagger') {
+        console.log('Swagger tab shown, initializing...');
+        // Explicitly hide the Scenario Generator tab and all its content
+        const generatorTab = document.getElementById('tab-generator');
+        if (generatorTab) {
+          generatorTab.style.display = 'none';
+          generatorTab.style.visibility = 'hidden';
+          generatorTab.style.opacity = '0';
+          generatorTab.classList.remove('active');
+          // Don't use absolute positioning that moves it off-screen, just hide it
+        }
+        // Also hide the seedForm specifically
+        const seedForm = document.getElementById('seedForm');
+        if (seedForm) {
+          seedForm.style.display = 'none';
+          seedForm.style.visibility = 'hidden';
+        }
+        // Reset initialization flag to allow re-initialization
+        swaggerAnalyzerInitialized = false;
+        // Ensure tab is visible before initializing
+        const swaggerTabContent = document.getElementById('tab-swagger');
+        if (swaggerTabContent) {
+          console.log('Setting swagger tab visible:', swaggerTabContent);
+          swaggerTabContent.style.display = 'block';
+          swaggerTabContent.style.visibility = 'visible';
+          swaggerTabContent.style.opacity = '1';
+          swaggerTabContent.style.position = 'relative';
+          swaggerTabContent.style.left = 'auto';
+          swaggerTabContent.style.width = '100%';
+          swaggerTabContent.style.height = 'auto';
+          swaggerTabContent.style.minHeight = '200px';
+          swaggerTabContent.classList.add('active');
+          
+          // Force visibility of all child elements and reset positioning
+          const cards = swaggerTabContent.querySelectorAll('.card');
+          console.log('Found', cards.length, 'cards in swagger tab');
+          cards.forEach(card => {
+            card.style.display = 'block';
+            card.style.visibility = 'visible';
+            card.style.width = '100%';
+            card.style.position = 'relative';
+            card.style.left = 'auto';
+          });
+          
+          // Also ensure form is visible and properly positioned
+          const form = swaggerTabContent.querySelector('#analyzeForm');
+          if (form) {
+            form.style.display = 'block';
+            form.style.visibility = 'visible';
+            form.style.width = '100%';
+            form.style.position = 'relative';
+            form.style.left = 'auto';
+            // Reset any inherited positioning
+            const formRect = form.getBoundingClientRect();
+            if (formRect.left < 0) {
+              form.style.position = 'relative';
+              form.style.left = '0';
+            }
+          }
+          
+          // Reset positioning on all elements in the tab
+          const allElements = swaggerTabContent.querySelectorAll('*');
+          allElements.forEach(el => {
+            if (el.style.position === 'absolute' && el.style.left && el.style.left.includes('-9999')) {
+              el.style.position = '';
+              el.style.left = '';
+            }
+          });
+          
+          // Verify it's actually visible
+          setTimeout(() => {
+            const rect = swaggerTabContent.getBoundingClientRect();
+            console.log('Swagger tab bounding rect:', {
+              width: rect.width,
+              height: rect.height,
+              top: rect.top,
+              left: rect.left
+            });
+          }, 50);
+        } else {
+          console.error('Swagger tab content not found!');
+        }
+        // Try multiple times in case DOM isn't ready
+        setTimeout(() => {
+          initSwaggerAnalyzer();
+          // Retry if form still not found
+          if (!document.getElementById('analyzeForm')) {
+            console.warn('Swagger form not found, retrying...');
+            setTimeout(() => {
+              swaggerAnalyzerInitialized = false;
+              initSwaggerAnalyzer();
+            }, 200);
+          }
+        }, 150);
+      }
+    };
+
+    // Store chart instances
+    let riskTrendChartInstance = null;
+    let decisionChartInstance = null;
+    let riskDistributionChartInstance = null;
+
+    // Calculate statistics
+    function calculateStats() {
+      if (runsData.length === 0) return;
+      
+      const passCount = runsData.filter(r => r.action === 'PASS').length;
+      const warnCount = runsData.filter(r => r.action === 'WARN').length;
+      const failCount = runsData.filter(r => r.action === 'FAIL').length;
+      const passRate = ((passCount / runsData.length) * 100).toFixed(1);
+      const avgRisk = (runsData.reduce((sum, r) => sum + r.riskScore, 0) / runsData.length).toFixed(3);
+      
+      document.getElementById('pass-rate').textContent = passRate + '%';
+      document.getElementById('avg-risk').textContent = avgRisk;
+      document.getElementById('fail-count').textContent = failCount;
+    }
+
+    // Risk Score Trend Chart
+    function renderRiskTrendChart() {
+      const ctx = document.getElementById('riskTrendChart');
+      if (!ctx) return;
+      
+      // Destroy existing chart if it exists
+      if (riskTrendChartInstance) {
+        riskTrendChartInstance.destroy();
+        riskTrendChartInstance = null;
+      }
+      
+      // Sort by timestamp
+      const sortedData = [...runsData].sort((a, b) => a.timestamp - b.timestamp);
+      
+      riskTrendChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: sortedData.map(r => r.timeLabel),
+          datasets: [{
+            label: 'Risk Score',
+            data: sortedData.map(r => r.riskScore),
+            borderColor: 'rgba(13, 110, 253, 1)',
+            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+            plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: 'rgba(26, 26, 26, 0.8)'
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              titleColor: 'rgba(26, 26, 26, 1)',
+              bodyColor: 'rgba(26, 26, 26, 0.8)',
+              borderColor: 'rgba(13, 110, 253, 0.5)',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 1.0,
+              ticks: {
+                color: 'rgba(108, 117, 125, 0.8)'
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.08)'
+              }
+            },
+            x: {
+              ticks: {
+                color: 'rgba(108, 117, 125, 0.8)',
+                maxRotation: 45,
+                minRotation: 45
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.08)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Status Distribution Chart
+    function renderDecisionChart() {
+      const ctx = document.getElementById('decisionChart');
+      if (!ctx) return;
+      
+      // Destroy existing chart if it exists
+      if (decisionChartInstance) {
+        decisionChartInstance.destroy();
+        decisionChartInstance = null;
+      }
+      
+      const passCount = runsData.filter(r => r.action === 'PASS').length;
+      const warnCount = runsData.filter(r => r.action === 'WARN').length;
+      const failCount = runsData.filter(r => r.action === 'FAIL').length;
+      const total = passCount + warnCount + failCount;
+      
+      decisionChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['PASS', 'WARN', 'FAIL'],
+          datasets: [{
+            data: [passCount, warnCount, failCount],
+            backgroundColor: [
+              'rgba(25, 135, 84, 0.8)',
+              'rgba(255, 193, 7, 0.8)',
+              'rgba(220, 53, 69, 0.8)'
+            ],
+            borderColor: [
+              'rgba(25, 135, 84, 1)',
+              'rgba(255, 193, 7, 1)',
+              'rgba(220, 53, 69, 1)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                font: {
+                  size: 13,
+                  weight: '600'
+                },
+                color: 'rgba(231, 238, 252, 1)',
+                usePointStyle: true,
+                pointStyle: 'circle',
+                generateLabels: function(chart) {
+                  const data = chart.data;
+                  const statusColors = {
+                    'PASS': 'rgba(110, 231, 168, 1)',
+                    'WARN': 'rgba(255, 211, 122, 1)',
+                    'FAIL': 'rgba(255, 122, 122, 1)'
+                  };
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map((label, i) => {
+                      const value = data.datasets[0].data[i];
+                      const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                      const color = statusColors[label] || data.datasets[0].backgroundColor[i];
+                      return {
+                        text: label + ' (' + percentage + '%)',
+                        fillStyle: color,
+                        strokeStyle: color,
+                        lineWidth: 2,
+                        hidden: false,
+                        index: i
+                      };
+                    });
+                  }
+                  return [];
+                }
+              },
+              onHover: function(e, legendItem) {
+                e.native.target.style.cursor = 'pointer';
+              },
+              onClick: function(e, legendItem) {
+                const index = legendItem.datasetIndex;
+                const ci = this.chart;
+                const meta = ci.getDatasetMeta(index);
+                meta.hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+                ci.update();
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              titleColor: 'rgba(26, 26, 26, 1)',
+              bodyColor: 'rgba(26, 26, 26, 0.8)',
+              borderColor: 'rgba(13, 110, 253, 0.5)',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                  return label + ': ' + value + ' (' + percentage + '%)';
+                }
+              }
+            }
+          }
+        },
+        plugins: [{
+          id: 'legendTextColor',
+          beforeDraw: function(chart) {
+            // Set canvas text color to ensure legend is readable
+            chart.ctx.fillStyle = 'rgba(26, 26, 26, 1)';
+            chart.ctx.strokeStyle = 'rgba(26, 26, 26, 1)';
+          }
+        }, {
+          id: 'datalabels',
+          afterDraw: function(chart) {
+            const ctx = chart.ctx;
+            const chartArea = chart.chartArea;
+            const centerX = (chartArea.left + chartArea.right) / 2;
+            const centerY = (chartArea.top + chartArea.bottom) / 2;
+            
+            // Status colors matching the chart and badges
+            const statusColors = {
+              'PASS': 'rgba(25, 135, 84, 1)',
+              'WARN': 'rgba(255, 193, 7, 1)',
+              'FAIL': 'rgba(220, 53, 69, 1)'
+            };
+            
+            // Draw percentage labels on each segment
+            chart.data.datasets.forEach((dataset, datasetIndex) => {
+              const meta = chart.getDatasetMeta(datasetIndex);
+              meta.data.forEach((element, index) => {
+                const value = dataset.data[index];
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                const label = chart.data.labels[index];
+                const segmentColor = statusColors[label] || 'rgba(231, 238, 252, 0.95)';
+                
+                // Calculate position on the arc
+                const model = element;
+                const angle = (model.startAngle + model.endAngle) / 2;
+                const x = centerX + Math.cos(angle) * (model.innerRadius + (model.outerRadius - model.innerRadius) / 2);
+                const y = centerY + Math.sin(angle) * (model.innerRadius + (model.outerRadius - model.innerRadius) / 2);
+                
+                // Only show percentage if segment is large enough
+                if (value > 0 && (model.endAngle - model.startAngle) > 0.3) {
+                  ctx.save();
+                  ctx.fillStyle = segmentColor;
+                  ctx.font = 'bold 12px ui-sans-serif, system-ui';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(percentage + '%', x, y);
+                  ctx.restore();
+                }
+              });
+            });
+          }
+        }]
+      });
+    }
+
+    // Risk Score Distribution Chart
+    function renderRiskDistributionChart() {
+      const ctx = document.getElementById('riskDistributionChart');
+      if (!ctx) return;
+      
+      // Destroy existing chart if it exists
+      if (riskDistributionChartInstance) {
+        riskDistributionChartInstance.destroy();
+        riskDistributionChartInstance = null;
+      }
+      
+      // Create bins: 0-0.2, 0.2-0.4, 0.4-0.6, 0.6-0.8, 0.8-1.0
+      const bins = [0, 0, 0, 0, 0];
+      const binLabels = ['0.0-0.2', '0.2-0.4', '0.4-0.6', '0.6-0.8', '0.8-1.0'];
+      
+      runsData.forEach(r => {
+        const score = r.riskScore;
+        if (score < 0.2) bins[0]++;
+        else if (score < 0.4) bins[1]++;
+        else if (score < 0.6) bins[2]++;
+        else if (score < 0.8) bins[3]++;
+        else bins[4]++;
+      });
+      
+      riskDistributionChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: binLabels,
+          datasets: [{
+            label: 'Number of Runs',
+            data: bins,
+            backgroundColor: [
+              'rgba(25, 135, 84, 0.6)',
+              'rgba(13, 110, 253, 0.6)',
+              'rgba(255, 193, 7, 0.6)',
+              'rgba(255, 152, 0, 0.6)',
+              'rgba(220, 53, 69, 0.6)'
+            ],
+            borderColor: [
+              'rgba(25, 135, 84, 1)',
+              'rgba(13, 110, 253, 1)',
+              'rgba(255, 193, 7, 1)',
+              'rgba(255, 152, 0, 1)',
+              'rgba(220, 53, 69, 1)'
+            ],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              titleColor: 'rgba(26, 26, 26, 1)',
+              bodyColor: 'rgba(26, 26, 26, 0.8)',
+              borderColor: 'rgba(13, 110, 253, 0.5)',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+                color: 'rgba(108, 117, 125, 0.8)'
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.08)'
+              }
+            },
+            x: {
+              ticks: {
+                color: 'rgba(108, 117, 125, 0.8)'
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.08)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize analytics when results tab is shown
+    function initAnalytics() {
+      if (runsData.length > 0) {
+        calculateStats();
+        renderRiskTrendChart();
+        renderDecisionChart();
+        renderRiskDistributionChart();
+      }
+    }
+
+    
+    // Make showTab globally accessible
+    window.showTab = showTab;
+    
+    // Set up tab button event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add click listeners to all tab buttons using data attributes
+      const tabButtons = document.querySelectorAll('.tab');
+      
+      tabButtons.forEach((button) => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          const tabName = this.getAttribute('data-tab');
+          if (tabName) {
+            showTab(tabName, this);
+          }
+        });
+      });
+      
+      // Restore active tab from sessionStorage
+      const activeTab = sessionStorage.getItem('activeTab') || 'generator';
+      const activeButton = document.querySelector(`.tab[data-tab="${activeTab}"]`);
+      if (activeButton) {
+        showTab(activeTab, activeButton);
+      } else {
+        // Default to first tab if no saved tab
+        const firstTab = document.querySelector('.tab[data-tab="generator"]');
+        if (firstTab) {
+          showTab('generator', firstTab);
+        }
+        // If no saved tab, initialize analytics if results tab is visible by default
+        if (document.getElementById('tab-results')?.classList.contains('active')) {
+          setTimeout(initAnalytics, 100);
+        }
+      }
+    });
     function tryParseJson(text){
       const t = (text || "").trim();
       if (!t) return null;
@@ -363,11 +2059,25 @@
     function fillSeedExample(){
       const f = document.getElementById("seedForm");
       if (!f) return;
-      f.base_url.value = "{{ default_base_url }}";
-      f.endpoint.value = "{{ default_endpoint }}";
+      // Baseline fields
+      f.base_url.value = "http://localhost:8001";
+      f.endpoint.value = "/play?v=1";
+      f.baseline_request_type.value = "GET";
+      f.baseline_params_json.value = '{"v": 1}';
+      f.baseline_headers_json.value = '{"Authorization": "Bearer <token>"}';
+      f.baseline_request_body_json.value = '';
+      // Candidate fields
+      f.candidate_base_url.value = "http://localhost:8001";
+      f.candidate_endpoint.value = "/play?v=2";
+      f.candidate_request_type.value = "GET";
+      f.candidate_params_json.value = '{"v": 2}';
+      f.candidate_headers_json.value = '{"Authorization": "Bearer <token>"}';
+      f.candidate_request_body_json.value = '';
+      // Other fields
       f.tags.value = "baseline, real";
-      f.params_json.value = '{"v": 1}';
-      f.headers_json.value = '{"Authorization": "Bearer <token>"}';
+      // Update request body visibility
+      toggleRequestBody('baseline', f.baseline_request_type.value);
+      toggleRequestBody('candidate', f.candidate_request_type.value);
       prettifyAll();
     }
 
@@ -379,14 +2089,2024 @@
       prettifyAll();
     }
 
+    function toggleBaselineOptions() {
+      const liveRadio = document.querySelector('input[name="baseline_option"][value="live"]');
+      const jsonRadio = document.querySelector('input[name="baseline_option"][value="json"]');
+      const liveFields = document.getElementById('baseline_live_fields');
+      const jsonFields = document.getElementById('baseline_json_fields');
+      
+      if (liveRadio && jsonRadio && liveFields && jsonFields) {
+        if (liveRadio.checked) {
+          // Live Request selected
+          liveFields.style.display = 'block';
+          jsonFields.style.display = 'none';
+        } else if (jsonRadio.checked) {
+          // Baseline JSON selected
+          liveFields.style.display = 'none';
+          jsonFields.style.display = 'block';
+        } else {
+          // Default to live
+          liveRadio.checked = true;
+          liveFields.style.display = 'block';
+          jsonFields.style.display = 'none';
+        }
+      }
+    }
+
+    function toggleRequestBody(section, requestType) {
+      const container = document.getElementById(section + '_request_body_container');
+      if (container) {
+        if (requestType === 'GET' || requestType === 'DELETE') {
+          container.style.display = 'none';
+        } else {
+          container.style.display = 'block';
+        }
+      }
+    }
+
     function clearSeedAdvanced(){
       const f = document.getElementById("seedForm");
       if (!f) return;
-      f.params_json.value = "";
-      f.headers_json.value = "";
+      // Clear baseline fields
+      f.baseline_params_json.value = "";
+      f.baseline_headers_json.value = "";
+      f.baseline_request_body_json.value = "";
       f.baseline_json.value = "";
+      // Clear candidate fields
+      f.candidate_params_json.value = "";
+      f.candidate_headers_json.value = "";
+      f.candidate_request_body_json.value = "";
       prettifyAll();
     }
+
+    // Check Baseline Request
+    async function checkBaselineRequest() {
+      const f = document.getElementById("seedForm");
+      if (!f) return;
+      
+      const baseUrl = f.base_url.value.trim();
+      const endpoint = f.endpoint.value.trim();
+      const requestType = f.baseline_request_type.value;
+      const headersJson = f.baseline_headers_json.value.trim();
+      const paramsJson = f.baseline_params_json.value.trim();
+      const bodyJson = f.baseline_request_body_json.value.trim();
+      
+      if (!baseUrl || !endpoint) {
+        alert('Please provide Base URL and Endpoint Path');
+        return;
+      }
+      
+      await makeRequest('Baseline', baseUrl, endpoint, requestType, headersJson, paramsJson, bodyJson);
+    }
+
+    // Check Candidate Request
+    async function checkCandidateRequest() {
+      const f = document.getElementById("seedForm");
+      if (!f) return;
+      
+      const baseUrl = f.candidate_base_url.value.trim();
+      const endpoint = f.candidate_endpoint.value.trim();
+      const requestType = f.candidate_request_type.value;
+      const headersJson = f.candidate_headers_json.value.trim();
+      const paramsJson = f.candidate_params_json.value.trim();
+      const bodyJson = f.candidate_request_body_json.value.trim();
+      
+      if (!baseUrl || !endpoint) {
+        alert('Please provide Base URL and Endpoint Path');
+        return;
+      }
+      
+      await makeRequest('Candidate', baseUrl, endpoint, requestType, headersJson, paramsJson, bodyJson);
+    }
+
+    // Make API Request and Show Modal
+    async function makeRequest(section, baseUrl, endpoint, requestType, headersJson, paramsJson, bodyJson) {
+      const modal = document.getElementById('requestModal');
+      const modalTitle = document.querySelector('.modal-title');
+      
+      // Show loading state
+      modalTitle.textContent = `${section} Request - Loading...`;
+      modal.classList.add('active');
+      
+      try {
+        // Validate inputs
+        if (!baseUrl || !endpoint) {
+          throw new Error('Base URL and Endpoint Path are required');
+        }
+        
+        // Use backend endpoint to avoid CORS issues
+        const formData = new FormData();
+        
+        // Construct full URL properly
+        let fullUrl = baseUrl.trim();
+        if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+          fullUrl = 'http://' + fullUrl;
+        }
+        
+        // Add endpoint
+        const endpointClean = endpoint.trim().startsWith('/') ? endpoint.trim() : '/' + endpoint.trim();
+        fullUrl = fullUrl.replace(/\/+$/, '') + endpointClean;
+        
+        // Clean up double slashes (but preserve http:// or https://)
+        fullUrl = fullUrl.replace(/([^:]\/)\/+/g, '$1');
+        
+        formData.append('request_url', fullUrl);
+        formData.append('request_method', requestType);
+        formData.append('headers_json', headersJson || '');
+        formData.append('params_json', paramsJson || '');
+        formData.append('request_body_json', bodyJson || '');
+        
+        const response = await fetch('/api/test-request', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Display in modal
+        modalTitle.textContent = `${section} Request/Response`;
+        displayRequestDetailsFromData(data);
+        
+      } catch (error) {
+        modalTitle.textContent = `${section} Request - Error`;
+        displayRequestError(error);
+      }
+    }
+
+    // Display Request Details in Modal from backend response
+    function displayRequestDetailsFromData(data) {
+      // Handle both old and new response formats
+      let req, res;
+      if (data.request && data.response) {
+        // New format from /api/test-request
+        req = data.request;
+        res = data.response;
+      } else {
+        // Fallback format
+        req = {
+          method: data.request_method || 'GET',
+          url: data.request_url || data.processed_url || '',
+          headers: data.request_headers || {},
+          params: data.request_params || {},
+          body: data.request_body
+        };
+        res = {
+          status_code: data.status_code || 0,
+          status_text: data.status_code >= 200 && data.status_code < 300 ? 'OK' : data.status_code >= 400 && data.status_code < 500 ? 'Client Error' : 'Server Error',
+          headers: data.response_headers || {},
+          body: data.response_body || '',
+          duration_ms: data.duration_ms || 0
+        };
+      }
+      
+      // Request details
+      document.getElementById('modal-request-url').textContent = `${req.method} ${req.url}`;
+      
+      if (req.headers && Object.keys(req.headers).length > 0) {
+        document.getElementById('modal-request-headers-section').style.display = 'block';
+        document.getElementById('modal-request-headers').textContent = JSON.stringify(req.headers, null, 2);
+      } else {
+        document.getElementById('modal-request-headers-section').style.display = 'none';
+      }
+      
+      if (req.params && Object.keys(req.params).length > 0) {
+        document.getElementById('modal-request-params-section').style.display = 'block';
+        document.getElementById('modal-request-params').textContent = JSON.stringify(req.params, null, 2);
+      } else {
+        document.getElementById('modal-request-params-section').style.display = 'none';
+      }
+      
+      if (req.body) {
+        document.getElementById('modal-request-body-section').style.display = 'block';
+        document.getElementById('modal-request-body').textContent = JSON.stringify(req.body, null, 2);
+      } else {
+        document.getElementById('modal-request-body-section').style.display = 'none';
+      }
+      
+      // Response details
+      const statusCode = res.status_code;
+      document.getElementById('modal-response-status').textContent = `${statusCode} ${res.status_text} (${res.duration_ms}ms)`;
+      
+      const statusBadge = document.getElementById('modal-response-status-badge');
+      statusBadge.textContent = statusCode >= 200 && statusCode < 300 ? 'Success' : statusCode >= 400 && statusCode < 500 ? 'Client Error' : 'Server Error';
+      statusBadge.className = 'status-badge ' + (statusCode >= 200 && statusCode < 300 ? 'status-200' : statusCode >= 400 && statusCode < 500 ? 'status-400' : 'status-500');
+      
+      // Response headers
+      if (res.headers && Object.keys(res.headers).length > 0) {
+        document.getElementById('modal-response-headers-section').style.display = 'block';
+        document.getElementById('modal-response-headers').textContent = JSON.stringify(res.headers, null, 2);
+      } else {
+        document.getElementById('modal-response-headers-section').style.display = 'none';
+      }
+      
+      // Response body
+      if (typeof res.body === 'object') {
+        document.getElementById('modal-response-body').textContent = JSON.stringify(res.body, null, 2);
+      } else {
+        document.getElementById('modal-response-body').textContent = res.body || '';
+      }
+    }
+
+    // Display Request Error in Modal
+    function displayRequestError(error) {
+      document.getElementById('modal-request-url').textContent = error.message || 'Unknown error';
+      document.getElementById('modal-request-headers-section').style.display = 'none';
+      document.getElementById('modal-request-params-section').style.display = 'none';
+      document.getElementById('modal-request-body-section').style.display = 'none';
+      
+      document.getElementById('modal-response-status').textContent = 'Error';
+      document.getElementById('modal-response-status-badge').textContent = 'Failed';
+      document.getElementById('modal-response-status-badge').className = 'status-badge status-500';
+      document.getElementById('modal-response-headers-section').style.display = 'none';
+      document.getElementById('modal-response-body').textContent = error.message || 'Request failed';
+    }
+
+    // Close Modal
+    function closeRequestModal() {
+      document.getElementById('requestModal').classList.remove('active');
+    }
+
+    // Copy Response to Clipboard
+    function copyResponseToClipboard() {
+      const responseBody = document.getElementById('modal-response-body').textContent;
+      navigator.clipboard.writeText(responseBody).then(() => {
+        alert('Response copied to clipboard!');
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+      });
+    }
+
+    // Dry Run Scenario - Run full validation
+    async function dryRunScenario() {
+      const f = document.getElementById("seedForm");
+      if (!f) return;
+      
+      const modal = document.getElementById('dryRunModal');
+      modal.classList.add('active');
+      
+      // Clear previous results
+      document.getElementById('dryrun-baseline-status').textContent = 'Loading...';
+      document.getElementById('dryrun-baseline-body').textContent = '';
+      document.getElementById('dryrun-baseline-request').textContent = '';
+      document.getElementById('dryrun-candidate-status').textContent = 'Loading...';
+      document.getElementById('dryrun-candidate-body').textContent = '';
+      document.getElementById('dryrun-candidate-request').textContent = '';
+      document.getElementById('dryrun-validation-results').innerHTML = '<div class="detail-value">Running validation...</div>';
+      document.getElementById('dryrun-comparison-summary').innerHTML = '<div class="detail-value">Loading comparison...</div>';
+      
+      try {
+        // Get baseline configuration
+        const baselineOption = document.querySelector('input[name="baseline_option"]:checked');
+        const baselineLive = baselineOption && baselineOption.value === 'live';
+        const baselineJson = baselineOption && baselineOption.value === 'json';
+        
+        // Prepare form data for dry-run validation
+        const formData = new FormData();
+        
+        // Baseline
+        if (baselineJson && f.baseline_json.value.trim()) {
+          formData.append('baseline_json', f.baseline_json.value.trim());
+        } else if (baselineLive) {
+          formData.append('baseline_base_url', f.base_url.value.trim());
+          formData.append('baseline_endpoint', f.endpoint.value.trim());
+          formData.append('baseline_request_type', f.baseline_request_type.value);
+          formData.append('baseline_params_json', f.baseline_params_json.value.trim() || '');
+          formData.append('baseline_headers_json', f.baseline_headers_json.value.trim() || '');
+          formData.append('baseline_request_body_json', f.baseline_request_body_json.value.trim() || '');
+        } else {
+          throw new Error('Please select either Live Request or Baseline JSON');
+        }
+        
+        // Candidate
+        formData.append('candidate_base_url', f.candidate_base_url.value.trim());
+        formData.append('candidate_endpoint', f.candidate_endpoint.value.trim());
+        formData.append('candidate_request_type', f.candidate_request_type.value);
+        formData.append('candidate_params_json', f.candidate_params_json.value.trim() || '');
+        formData.append('candidate_headers_json', f.candidate_headers_json.value.trim() || '');
+        formData.append('candidate_request_body_json', f.candidate_request_body_json.value.trim() || '');
+        
+        // Call dry-run validation endpoint
+        const response = await fetch('/api/dry-run', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Display results
+        displayDryRunValidationResults(data);
+        
+      } catch (error) {
+        document.getElementById('dryrun-baseline-status').textContent = 'Error';
+        document.getElementById('dryrun-baseline-body').textContent = error.message || 'Failed to run validation';
+        document.getElementById('dryrun-candidate-status').textContent = 'Error';
+        document.getElementById('dryrun-candidate-body').textContent = error.message || 'Failed to run validation';
+        document.getElementById('dryrun-validation-results').innerHTML = '<div class="detail-value" style="color: var(--bad);">Error: ' + (error.message || 'Validation failed') + '</div>';
+      }
+    }
+
+    // Display Dry Run Validation Results
+    function displayDryRunValidationResults(data) {
+      const baseline = data.baseline;
+      const candidate = data.candidate;
+      const validation = data.validation;
+      
+      // Baseline Request Details
+      const baselineReq = baseline.request;
+      let baselineReqText = `${baselineReq.method} ${baselineReq.url}`;
+      if (baselineReq.params && Object.keys(baselineReq.params).length > 0) {
+        baselineReqText += '\n\nQuery Params:\n' + JSON.stringify(baselineReq.params, null, 2);
+      }
+      if (baselineReq.headers && Object.keys(baselineReq.headers).length > 0) {
+        baselineReqText += '\n\nHeaders:\n' + JSON.stringify(baselineReq.headers, null, 2);
+      }
+      if (baselineReq.body) {
+        baselineReqText += '\n\nRequest Body:\n' + JSON.stringify(baselineReq.body, null, 2);
+      }
+      document.getElementById('dryrun-baseline-request').textContent = baselineReqText;
+      
+      // Baseline Response
+      document.getElementById('dryrun-baseline-status').textContent = baselineReq.method === 'JSON' ? 'JSON (pasted)' : '200 OK';
+      const baselineBadge = document.getElementById('dryrun-baseline-status-badge');
+      baselineBadge.textContent = 'Success';
+      baselineBadge.className = 'status-badge status-200';
+      document.getElementById('dryrun-baseline-body').textContent = JSON.stringify(baseline.response, null, 2);
+      
+      // Candidate Request Details
+      const candidateReq = candidate.request;
+      let candidateReqText = `${candidateReq.method} ${candidateReq.url}`;
+      if (candidateReq.params && Object.keys(candidateReq.params).length > 0) {
+        candidateReqText += '\n\nQuery Params:\n' + JSON.stringify(candidateReq.params, null, 2);
+      }
+      if (candidateReq.headers && Object.keys(candidateReq.headers).length > 0) {
+        candidateReqText += '\n\nHeaders:\n' + JSON.stringify(candidateReq.headers, null, 2);
+      }
+      if (candidateReq.body) {
+        candidateReqText += '\n\nRequest Body:\n' + JSON.stringify(candidateReq.body, null, 2);
+      }
+      document.getElementById('dryrun-candidate-request').textContent = candidateReqText;
+      
+      // Candidate Response
+      document.getElementById('dryrun-candidate-status').textContent = candidateReq.method === 'JSON' ? 'JSON (pasted)' : '200 OK';
+      const candidateBadge = document.getElementById('dryrun-candidate-status-badge');
+      candidateBadge.textContent = 'Success';
+      candidateBadge.className = 'status-badge status-200';
+      document.getElementById('dryrun-candidate-body').textContent = JSON.stringify(candidate.response, null, 2);
+      
+      // Validation Results
+      const statusClass = validation.status === 'PASS' ? 'status-200' : validation.status === 'WARN' ? 'status-400' : 'status-500';
+      const statusColor = validation.status === 'PASS' ? 'var(--good)' : validation.status === 'WARN' ? 'var(--warn)' : 'var(--bad)';
+      
+      let validationHtml = `
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <span style="font-size: 18px; font-weight: 600;">Risk Score:</span>
+            <span style="font-size: 24px; font-weight: 700; color: ${statusColor};">${(validation.risk_score * 100).toFixed(1)}%</span>
+            <button id="risk-info-btn" 
+                    data-validation='${JSON.stringify(validation).replace(/'/g, "&#39;")}'
+                    onclick="const data = JSON.parse(this.getAttribute('data-validation')); showRiskCalculationDetails(data);" 
+                    style="background: none; border: none; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; color: var(--accent);" 
+                    title="View risk calculation details">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 18px; font-weight: 600;">Status:</span>
+            <span class="status-badge ${statusClass}" style="font-size: 14px; padding: 6px 12px;">${validation.status}</span>
+          </div>
+        </div>
+      `;
+      
+      // Reasons
+      if (validation.reasons && validation.reasons.length > 0) {
+        validationHtml += '<div style="margin-bottom: 16px;"><strong>Top Signals:</strong><ul style="margin: 8px 0; padding-left: 20px;">';
+        validation.reasons.slice(0, 5).forEach(reason => {
+          validationHtml += `<li style="margin: 4px 0;">${reason}</li>`;
+        });
+        validationHtml += '</ul></div>';
+      }
+      
+      // Features Summary
+      if (validation.features) {
+        const feats = validation.features;
+        validationHtml += '<div style="margin-bottom: 16px;"><strong>Feature Summary:</strong><ul style="margin: 8px 0; padding-left: 20px;">';
+        if (feats.critical_changes > 0) validationHtml += `<li>Critical Changes: ${feats.critical_changes}</li>`;
+        if (feats.type_changes > 0) validationHtml += `<li>Type Changes: ${feats.type_changes}</li>`;
+        if (feats.removed_fields > 0) validationHtml += `<li>Removed Fields: ${feats.removed_fields}</li>`;
+        if (feats.added_fields > 0) validationHtml += `<li>Added Fields: ${feats.added_fields}</li>`;
+        if (feats.array_length_changes > 0) validationHtml += `<li>Array Length Changes: ${feats.array_length_changes}</li>`;
+        if (feats.max_numeric_delta > 0) validationHtml += `<li>Max Numeric Delta: ${feats.max_numeric_delta}</li>`;
+        validationHtml += '</ul></div>';
+      }
+      
+      document.getElementById('dryrun-validation-results').innerHTML = validationHtml;
+      
+      // Comparison Summary with Changes
+      let summaryHtml = `<div style="margin-bottom: 12px;"><strong>Change Count:</strong> ${validation.change_count} changes detected</div>`;
+      
+      if (validation.changes && validation.changes.length > 0) {
+        summaryHtml += '<div style="margin-top: 12px;"><strong>Key Changes:</strong><div style="max-height: 300px; overflow-y: auto; margin-top: 8px;">';
+        validation.changes.slice(0, 10).forEach(change => {
+          summaryHtml += `
+            <div style="margin-bottom: 12px; padding: 8px; background: rgba(0,0,0,.03); border-radius: 4px; border-left: 3px solid var(--accent);">
+              <div style="font-weight: 600; color: var(--accent); margin-bottom: 4px;">${change.path || '(root)'}</div>
+              <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">Type: ${change.change_type}</div>
+              ${change.before ? `<div style="font-size: 12px; margin-top: 4px;"><strong>Before:</strong> <code style="background: rgba(220,53,69,.1); padding: 2px 4px; border-radius: 2px;">${typeof change.before === 'object' ? JSON.stringify(change.before) : String(change.before)}</code></div>` : ''}
+              ${change.after ? `<div style="font-size: 12px; margin-top: 4px;"><strong>After:</strong> <code style="background: rgba(25,135,84,.1); padding: 2px 4px; border-radius: 2px;">${typeof change.after === 'object' ? JSON.stringify(change.after) : String(change.after)}</code></div>` : ''}
+            </div>
+          `;
+        });
+        if (validation.changes.length > 10) {
+          summaryHtml += `<div style="margin-top: 8px; font-size: 12px; color: var(--muted);">... and ${validation.changes.length - 10} more changes</div>`;
+        }
+        summaryHtml += '</div></div>';
+      }
+      
+      document.getElementById('dryrun-comparison-summary').innerHTML = summaryHtml;
+    }
+
+    // Close Dry Run Modal
+    function closeDryRunModal() {
+      document.getElementById('dryRunModal').classList.remove('active');
+    }
+
+    // Run Report Modal Functions - duplicate removed (defined earlier)
+
+    window.displayRunReport = function(run) {
+      console.log('displayRunReport called with run:', run);
+      
+      // Ensure modal is still visible
+      const modal = document.getElementById('runReportModal');
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+        modal.style.visibility = 'visible';
+        modal.style.opacity = '1';
+        modal.style.zIndex = '10000';
+        console.log('Modal visibility enforced in displayRunReport');
+      }
+      
+      // Validation Results
+      const statusClass = run.action === 'PASS' ? 'status-200' : run.action === 'WARN' ? 'status-400' : 'status-500';
+      const statusColor = run.action === 'PASS' ? 'var(--good)' : run.action === 'WARN' ? 'var(--warn)' : 'var(--bad)';
+      
+      let validationHtml = `
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <span style="font-size: 18px; font-weight: 600;">Risk Score:</span>
+            <span style="font-size: 24px; font-weight: 700; color: ${statusColor};">${(run.risk_score * 100).toFixed(1)}%</span>
+            <button id="report-risk-info-btn" 
+                    data-risk-score="${run.risk_score || 0}"
+                    data-status="${(run.action || 'UNKNOWN').replace(/"/g, '&quot;')}"
+                    data-features='${JSON.stringify(run.features || {}).replace(/'/g, "&#39;").replace(/"/g, '&quot;')}'
+                    data-reasons='${JSON.stringify(run.reasons || []).replace(/'/g, "&#39;").replace(/"/g, '&quot;')}'
+                    onclick="const btn = this; try { const data = {risk_score: parseFloat(btn.getAttribute('data-risk-score')) || 0, status: btn.getAttribute('data-status') || 'UNKNOWN', features: JSON.parse(btn.getAttribute('data-features') || '{}'), reasons: JSON.parse(btn.getAttribute('data-reasons') || '[]')}; if (window.showRiskCalculationDetails) { window.showRiskCalculationDetails(data); } else { console.error('showRiskCalculationDetails not found'); } } catch(e) { console.error('Error parsing risk data:', e); }" 
+                    style="background: none; border: none; cursor: pointer; padding: 4px; display: inline-flex; align-items: center; color: var(--accent);" 
+                    title="View risk calculation details">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+            </button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 18px; font-weight: 600;">Status:</span>
+            <span class="status-badge ${statusClass}" style="font-size: 14px; padding: 6px 12px;">${run.action}</span>
+          </div>
+        </div>
+      `;
+      
+      // Features Summary
+      if (run.features) {
+        const feats = run.features;
+        validationHtml += '<div style="margin-bottom: 16px;"><strong>Feature Summary:</strong><ul style="margin: 8px 0; padding-left: 20px;">';
+        if (feats.critical_changes > 0) validationHtml += `<li>Critical Changes: ${feats.critical_changes}</li>`;
+        if (feats.type_changes > 0) validationHtml += `<li>Type Changes: ${feats.type_changes}</li>`;
+        if (feats.removed_fields > 0) validationHtml += `<li>Removed Fields: ${feats.removed_fields}</li>`;
+        if (feats.added_fields > 0) validationHtml += `<li>Added Fields: ${feats.added_fields}</li>`;
+        if (feats.array_length_changes > 0) validationHtml += `<li>Array Length Changes: ${feats.array_length_changes}</li>`;
+        if (feats.max_numeric_delta > 0) validationHtml += `<li>Max Numeric Delta: ${feats.max_numeric_delta}</li>`;
+        validationHtml += '</ul></div>';
+      }
+      
+      const resultsDiv = document.getElementById('report-validation-results');
+      if (resultsDiv) {
+        resultsDiv.innerHTML = validationHtml;
+      }
+      
+      // Baseline Request Details
+      const baselineUrl = run.baseline_url || (run.scenario_base_url && run.endpoint ? `${run.scenario_base_url}${run.endpoint}` : run.endpoint || 'N/A');
+      const baselineRequestEl = document.getElementById('report-baseline-request');
+      if (baselineRequestEl) baselineRequestEl.textContent = `GET ${baselineUrl}`;
+      
+      const baselineStatusEl = document.getElementById('report-baseline-status');
+      if (baselineStatusEl) baselineStatusEl.textContent = '200';
+      
+      const baselineStatusBadgeEl = document.getElementById('report-baseline-status-badge');
+      if (baselineStatusBadgeEl) {
+        baselineStatusBadgeEl.textContent = 'OK';
+        baselineStatusBadgeEl.className = 'status-badge status-200';
+      }
+      
+      // Baseline Response Body
+      const baselineBodyEl = document.getElementById('report-baseline-body');
+      if (baselineBodyEl) {
+        if (run.baseline) {
+          baselineBodyEl.textContent = JSON.stringify(run.baseline, null, 2);
+        } else {
+          baselineBodyEl.textContent = 'No baseline data available';
+        }
+      }
+      
+      // Candidate Request Details
+      const candidateUrl = run.candidate_url || 'N/A';
+      const candidateParams = run.candidate_params || {};
+      let candidateRequestText = `GET ${candidateUrl}`;
+      if (Object.keys(candidateParams).length > 0) {
+        candidateRequestText += '\n\nQuery Parameters:\n' + JSON.stringify(candidateParams, null, 2);
+      }
+      
+      const candidateRequestEl = document.getElementById('report-candidate-request');
+      if (candidateRequestEl) candidateRequestEl.textContent = candidateRequestText;
+      
+      const candidateStatusEl = document.getElementById('report-candidate-status');
+      if (candidateStatusEl) candidateStatusEl.textContent = '200';
+      
+      const candidateStatusBadgeEl = document.getElementById('report-candidate-status-badge');
+      if (candidateStatusBadgeEl) {
+        candidateStatusBadgeEl.textContent = ' OK';
+        candidateStatusBadgeEl.className = 'status-badge status-200';
+      }
+      
+      // Candidate Response Body
+      const candidateBodyEl = document.getElementById('report-candidate-body');
+      if (candidateBodyEl) {
+        if (run.candidate) {
+          candidateBodyEl.textContent = JSON.stringify(run.candidate, null, 2);
+        } else {
+          candidateBodyEl.textContent = 'No candidate data available';
+        }
+      }
+      
+      // Comparison Summary with Changes
+      const changeCount = run.changes ? run.changes.length : 0;
+      let summaryHtml = `<div style="margin-bottom: 12px;"><strong>Change Count:</strong> ${changeCount} changes detected</div>`;
+      
+      if (run.changes && run.changes.length > 0) {
+        summaryHtml += '<div style="margin-top: 12px;"><strong>Key Changes:</strong><div style="max-height: 300px; overflow-y: auto; margin-top: 8px;">';
+        run.changes.slice(0, 10).forEach(change => {
+          summaryHtml += `
+            <div style="margin-bottom: 12px; padding: 8px; background: rgba(0,0,0,.03); border-radius: 4px; border-left: 3px solid var(--accent);">
+              <div style="font-weight: 600; color: var(--accent); margin-bottom: 4px;">${change.path || '(root)'}</div>
+              <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px;">Type: ${change.change_type || 'unknown'}</div>
+              ${change.before ? `<div style="font-size: 11px; color: var(--bad); margin-bottom: 2px;"><strong>Before:</strong> ${typeof change.before === 'string' ? change.before.substring(0, 100) : JSON.stringify(change.before).substring(0, 100)}${(typeof change.before === 'string' ? change.before.length : JSON.stringify(change.before).length) > 100 ? '...' : ''}</div>` : ''}
+              ${change.after ? `<div style="font-size: 11px; color: var(--good);"><strong>After:</strong> ${typeof change.after === 'string' ? change.after.substring(0, 100) : JSON.stringify(change.after).substring(0, 100)}${(typeof change.after === 'string' ? change.after.length : JSON.stringify(change.after).length) > 100 ? '...' : ''}</div>` : ''}
+            </div>
+          `;
+        });
+        if (run.changes.length > 10) {
+          summaryHtml += `<div style="margin-top: 8px; font-size: 12px; color: var(--muted);">... and ${run.changes.length - 10} more changes</div>`;
+        }
+        summaryHtml += '</div></div>';
+      }
+      
+      const summaryDiv = document.getElementById('report-comparison-summary');
+      if (summaryDiv) {
+        summaryDiv.innerHTML = summaryHtml;
+      }
+    }
+
+    // closeRunReportModal already defined earlier, removing duplicate
+
+    // About Modal Functions
+    function showAboutModal() {
+      const modal = document.getElementById('aboutModal');
+      if (modal) {
+        modal.classList.add('active');
+      }
+    }
+
+    function closeAboutModal() {
+      const modal = document.getElementById('aboutModal');
+      if (modal) {
+        modal.classList.remove('active');
+      }
+    }
+
+    // Risk Calculation Details Modal
+    window.showRiskCalculationDetails = function(validation) {
+      let modal = document.getElementById('riskCalculationModal');
+      if (!modal) {
+        // Create modal if it doesn't exist
+        const modalHtml = `
+          <div id="riskCalculationModal" class="modal-overlay" onclick="if(event.target === this) window.closeRiskCalculationModal()">
+            <div class="modal" style="max-width: 900px;">
+              <div class="modal-header">
+                <h3 class="modal-title">Risk Score Calculation Details</h3>
+                <button class="modal-close" onclick="window.closeRiskCalculationModal()">&times;</button>
+              </div>
+              <div class="modal-body" id="risk-calculation-content">
+              </div>
+            </div>
+          </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modal = document.getElementById('riskCalculationModal');
+      }
+      
+      // Ensure modal is above the run report modal (z-index 10000)
+      modal.classList.add('active');
+      modal.style.display = 'flex';
+      modal.style.zIndex = '10001';
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.right = '0';
+      modal.style.bottom = '0';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.6)';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      
+      // Calculate detailed breakdown
+      const features = validation.features || {};
+      const reasons = validation.reasons || {};
+      const riskScore = validation.risk_score || 0;
+      
+      // Feature weights (from model.py)
+      const WEIGHTS = {
+        "critical_changes": 0.18,
+        "type_changes": 0.14,
+        "removed_fields": 0.10,
+        "added_fields": 0.05,
+        "array_length_changes": 0.07,
+        "numeric_delta_max": 0.16,
+        "numeric_delta_sum": 0.06,
+        "value_changes": 0.04,
+      };
+      
+      // Calculate contributions
+      const contributions = [];
+      let rawScore = 0.0;
+      
+      if (features.critical_changes !== undefined) {
+        const contrib = WEIGHTS.critical_changes * features.critical_changes;
+        rawScore += contrib;
+        contributions.push({
+          name: "Critical Changes",
+          value: features.critical_changes,
+          weight: WEIGHTS.critical_changes,
+          contribution: contrib,
+          description: "Changes to critical API paths that impact user experience"
+        });
+      }
+      
+      if (features.type_changes !== undefined) {
+        const contrib = WEIGHTS.type_changes * features.type_changes;
+        rawScore += contrib;
+        contributions.push({
+          name: "Type Changes",
+          value: features.type_changes,
+          weight: WEIGHTS.type_changes,
+          contribution: contrib,
+          description: "Data type changes (breaking changes)"
+        });
+      }
+      
+      if (features.removed_fields !== undefined) {
+        const contrib = WEIGHTS.removed_fields * features.removed_fields;
+        rawScore += contrib;
+        contributions.push({
+          name: "Removed Fields",
+          value: features.removed_fields,
+          weight: WEIGHTS.removed_fields,
+          contribution: contrib,
+          description: "Fields removed from the response (breaking changes)"
+        });
+      }
+      
+      if (features.added_fields !== undefined) {
+        const contrib = WEIGHTS.added_fields * features.added_fields;
+        rawScore += contrib;
+        contributions.push({
+          name: "Added Fields",
+          value: features.added_fields,
+          weight: WEIGHTS.added_fields,
+          contribution: contrib,
+          description: "New fields added (usually safe, but can cause parsing issues)"
+        });
+      }
+      
+      if (features.array_length_changes !== undefined) {
+        const contrib = WEIGHTS.array_length_changes * features.array_length_changes;
+        rawScore += contrib;
+        contributions.push({
+          name: "Array Length Changes",
+          value: features.array_length_changes,
+          weight: WEIGHTS.array_length_changes,
+          contribution: contrib,
+          description: "Changes in array sizes (can affect pagination, UI rendering)"
+        });
+      }
+      
+      if (features.max_numeric_delta !== undefined) {
+        const normalized = Math.min(features.max_numeric_delta / 5.0, 10.0);
+        const contrib = WEIGHTS.numeric_delta_max * normalized;
+        rawScore += contrib;
+        contributions.push({
+          name: "Max Numeric Delta",
+          value: features.max_numeric_delta,
+          normalized: normalized.toFixed(2),
+          weight: WEIGHTS.numeric_delta_max,
+          contribution: contrib,
+          description: "Largest numeric value change (normalized: max(value/5, 10))"
+        });
+      }
+      
+      if (features.numeric_delta_sum !== undefined) {
+        const normalized = Math.min(features.numeric_delta_sum / 10.0, 10.0);
+        const contrib = WEIGHTS.numeric_delta_sum * normalized;
+        rawScore += contrib;
+        contributions.push({
+          name: "Numeric Delta Sum",
+          value: features.numeric_delta_sum,
+          normalized: normalized.toFixed(2),
+          weight: WEIGHTS.numeric_delta_sum,
+          contribution: contrib,
+          description: "Sum of all numeric changes (normalized: max(sum/10, 10))"
+        });
+      }
+      
+      if (features.value_changes !== undefined) {
+        const normalized = Math.min(features.value_changes / 10.0, 10.0);
+        const contrib = WEIGHTS.value_changes * normalized;
+        rawScore += contrib;
+        contributions.push({
+          name: "Value Changes",
+          value: features.value_changes,
+          normalized: normalized.toFixed(2),
+          weight: WEIGHTS.value_changes,
+          contribution: contrib,
+          description: "Total number of value changes (normalized: max(count/10, 10))"
+        });
+      }
+      
+      // Apply bias
+      const bias = -1.2;
+      rawScore += bias;
+      
+      // Calculate sigmoid
+      const sigmoid = (x) => {
+        try {
+          return 1.0 / (1.0 + Math.exp(-x));
+        } catch (e) {
+          return x < 0 ? 0.0 : 1.0;
+        }
+      };
+      const finalScore = sigmoid(rawScore);
+      
+      // Policy thresholds
+      const policy = reasons.policy || {
+        fail_threshold: 0.72,
+        warn_threshold: 0.45,
+        critical_override: ">=3 critical + >=1 type change => FAIL"
+      };
+      
+      // Build HTML
+      let html = `
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px; font-size: 16px; color: var(--accent);">Calculation Method</h4>
+          <p style="margin: 0 0 16px; color: var(--muted); font-size: 14px; line-height: 1.6;">
+            The risk score is calculated using a <strong>weighted linear combination</strong> of features extracted from JSON differences, 
+            normalized through a <strong>sigmoid function</strong> to produce a score between 0.0 and 1.0. This is <strong>real-time calculation</strong>, 
+            not mock data. The algorithm analyzes actual differences between baseline and candidate API responses.
+          </p>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px; font-size: 16px; color: var(--accent);">Step 1: Feature Contributions</h4>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="background: rgba(13,110,253,.1);">
+                  <th style="padding: 8px; text-align: left; border-bottom: 2px solid var(--border);">Feature</th>
+                  <th style="padding: 8px; text-align: center; border-bottom: 2px solid var(--border);">Value</th>
+                  <th style="padding: 8px; text-align: center; border-bottom: 2px solid var(--border);">Weight</th>
+                  <th style="padding: 8px; text-align: center; border-bottom: 2px solid var(--border);">Contribution</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+      
+      contributions.forEach((c, idx) => {
+        const rowColor = idx % 2 === 0 ? 'rgba(0,0,0,.02)' : 'transparent';
+        html += `
+          <tr style="background: ${rowColor};">
+            <td style="padding: 8px; border-bottom: 1px solid var(--border);">
+              <div style="font-weight: 600;">${c.name}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${c.description}</div>
+            </td>
+            <td style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border);">
+              ${c.normalized !== undefined ? `${c.value} (norm: ${c.normalized})` : c.value}
+            </td>
+            <td style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border);">${(c.weight * 100).toFixed(1)}%</td>
+            <td style="padding: 8px; text-align: center; border-bottom: 1px solid var(--border); font-weight: 600; color: var(--accent);">
+              ${c.contribution.toFixed(4)}
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px; font-size: 16px; color: var(--accent);">Step 2: Raw Score Calculation</h4>
+          <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; font-family: monospace; font-size: 13px;">
+            <div style="margin-bottom: 4px;">Sum of contributions: <strong>${(rawScore - bias).toFixed(4)}</strong></div>
+            <div style="margin-bottom: 4px;">Bias adjustment: <strong>${bias.toFixed(1)}</strong> (default low risk unless evidence)</div>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
+              Raw score (before sigmoid): <strong>${rawScore.toFixed(4)}</strong>
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px; font-size: 16px; color: var(--accent);">Step 3: Sigmoid Normalization</h4>
+          <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; font-family: monospace; font-size: 13px;">
+            <div style="margin-bottom: 4px;">Sigmoid function: <code>1 / (1 + e^(-x))</code></div>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
+              Final risk score: <strong style="font-size: 18px; color: var(--accent);">${(finalScore * 100).toFixed(2)}%</strong> (${finalScore.toFixed(4)})
+            </div>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px; font-size: 16px; color: var(--accent);">Step 4: Policy Decision</h4>
+          <div style="padding: 12px; background: rgba(13,110,253,.05); border-radius: 4px; font-size: 13px;">
+            <div style="margin-bottom: 8px;">
+              <strong>Thresholds:</strong>
+              <ul style="margin: 8px 0 0 20px; padding: 0;">
+                <li>FAIL: Risk score ≥ ${(policy.fail_threshold * 100).toFixed(0)}%</li>
+                <li>WARN: Risk score ≥ ${(policy.warn_threshold * 100).toFixed(0)}%</li>
+                <li>PASS: Risk score < ${(policy.warn_threshold * 100).toFixed(0)}%</li>
+              </ul>
+            </div>
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+              <strong>Current Decision:</strong> 
+              <span class="status-badge ${validation.status === 'PASS' ? 'status-200' : validation.status === 'WARN' ? 'status-400' : 'status-500'}" 
+                    style="margin-left: 8px; padding: 4px 8px; font-size: 12px;">
+                ${validation.status}
+              </span>
+            </div>
+            ${policy.critical_override ? `
+              <div style="margin-top: 8px; padding: 8px; background: rgba(255,193,7,.1); border-left: 3px solid var(--warn); border-radius: 4px; font-size: 12px;">
+                <strong>Override Rule:</strong> ${policy.critical_override}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+        
+        ${reasons.top_signals && reasons.top_signals.length > 0 ? `
+        <div style="margin-bottom: 20px;">
+          <h4 style="margin: 0 0 12px; font-size: 16px; color: var(--accent);">Top Contributing Signals</h4>
+          <ul style="margin: 0; padding-left: 20px;">
+            ${reasons.top_signals.map(s => `<li style="margin: 4px 0;"><strong>${s.signal}:</strong> ${s.value}</li>`).join('')}
+          </ul>
+        </div>
+        ` : ''}
+      `;
+      
+      document.getElementById('risk-calculation-content').innerHTML = html;
+      modal.classList.add('active');
+    }
+    
+    window.closeRiskCalculationModal = function() {
+      const modal = document.getElementById('riskCalculationModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = '';
+        modal.style.zIndex = '';
+      }
+    }
+
+    // Edit Scenario Functions
+    window.editScenario = function(scenarioId, name, baselineEndpoint, candidateEndpoint, tags) {
+      console.log('editScenario called with:', {scenarioId, name, baselineEndpoint, candidateEndpoint, tags});
+      
+      const idEl = document.getElementById('edit-scenario-id');
+      const nameEl = document.getElementById('edit-scenario-name');
+      const baselineEl = document.getElementById('edit-baseline-endpoint');
+      const candidateEl = document.getElementById('edit-candidate-endpoint');
+      const tagsEl = document.getElementById('edit-scenario-tags');
+      
+      if (!idEl || !nameEl || !baselineEl || !candidateEl || !tagsEl) {
+        console.error('Edit form elements not found');
+        alert('Error: Edit form not found. Please refresh the page.');
+        return;
+      }
+      
+      idEl.value = scenarioId;
+      nameEl.value = name || '';
+      baselineEl.value = baselineEndpoint || '';
+      candidateEl.value = candidateEndpoint || '';
+      tagsEl.value = tags || '';
+      
+      const modal = document.getElementById('editScenarioModal');
+      if (!modal) {
+        console.error('Edit scenario modal not found');
+        alert('Error: Edit modal not found. Please refresh the page.');
+        return;
+      }
+      
+      // Check if modal is inside a hidden container
+      if (modal.parentElement && modal.parentElement !== document.body) {
+        const parent = modal.parentElement;
+        const parentDisplay = window.getComputedStyle(parent).display;
+        if (parentDisplay === 'none') {
+          console.log('Modal parent is hidden, moving to body');
+          document.body.appendChild(modal);
+        }
+      }
+      
+      modal.classList.add('active');
+      
+      // Force all styles to ensure visibility
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.opacity = '1';
+      modal.style.zIndex = '10001';
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.right = '0';
+      modal.style.bottom = '0';
+      modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.padding = '20px';
+      
+      // Force a reflow
+      void modal.offsetWidth;
+      
+      // Check computed styles
+      const computed = window.getComputedStyle(modal);
+      console.log('Modal display:', computed.display);
+      console.log('Modal visibility:', computed.visibility);
+      console.log('Modal z-index:', computed.zIndex);
+      console.log('Modal position:', computed.position);
+      console.log('Modal classes:', modal.className);
+      console.log('Modal parent:', modal.parentElement);
+      console.log('Modal parent display:', modal.parentElement ? window.getComputedStyle(modal.parentElement).display : 'N/A');
+      console.log('Modal offsetWidth:', modal.offsetWidth);
+      console.log('Modal offsetHeight:', modal.offsetHeight);
+      
+      const rect = modal.getBoundingClientRect();
+      console.log('Modal bounding rect:', rect);
+      
+      console.log('Modal opened');
+    }
+
+    window.closeEditScenarioModal = function() {
+      const modal = document.getElementById('editScenarioModal');
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = '';
+        modal.style.zIndex = '';
+      }
+    }
+
+    window.saveEditedScenario = async function(event) {
+      event.preventDefault();
+      
+      const scenarioId = document.getElementById('edit-scenario-id').value;
+      const name = document.getElementById('edit-scenario-name').value.trim();
+      const baselineEndpoint = document.getElementById('edit-baseline-endpoint').value.trim();
+      const candidateEndpoint = document.getElementById('edit-candidate-endpoint').value.trim();
+      const tags = document.getElementById('edit-scenario-tags').value.trim();
+      
+      if (!name) {
+        alert('Scenario name is required');
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('scenario_id', scenarioId);
+      formData.append('name', name);
+      formData.append('baseline_endpoint', baselineEndpoint);
+      formData.append('candidate_endpoint', candidateEndpoint);
+      formData.append('tags', tags);
+      
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn ? submitBtn.textContent : 'Save Changes';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Saving...';
+      }
+      
+      try {
+        const response = await fetch('/update_scenario', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            alert('Scenario updated successfully');
+            window.closeEditScenarioModal();
+            window.location.reload();
+          } else {
+            alert('Error: ' + (result.error || 'Failed to update scenario'));
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.textContent = originalText;
+            }
+          }
+        } else {
+          const errorText = await response.text();
+          alert('Error: ' + errorText);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+          }
+        }
+      } catch (error) {
+        alert('Error updating scenario: ' + error.message);
+        console.error('Error:', error);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
+      }
+    }
+
+    // Scenario Selection Functions
+    function toggleAllScenarios(checked) {
+      document.querySelectorAll('.scenario-checkbox').forEach(cb => {
+        cb.checked = checked;
+      });
+    }
+
+    function selectAllScenarios() {
+      document.querySelectorAll('.scenario-checkbox').forEach(cb => {
+        cb.checked = true;
+      });
+      const selectAll = document.getElementById('select-all-checkbox');
+      if (selectAll) selectAll.checked = true;
+    }
+
+    function deselectAllScenarios() {
+      document.querySelectorAll('.scenario-checkbox').forEach(cb => {
+        cb.checked = false;
+      });
+      const selectAll = document.getElementById('select-all-checkbox');
+      if (selectAll) selectAll.checked = false;
+    }
+
+    // Run Selected Scenarios
+    async function runSelectedScenarios() {
+      const selectedCheckboxes = document.querySelectorAll('.scenario-checkbox:checked');
+      if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one scenario to run');
+        return;
+      }
+
+      const baselineBaseUrl = document.getElementById('baseline_base_url').value.trim();
+      const candidateBaseUrl = document.getElementById('candidate_base_url').value.trim();
+
+      if (!baselineBaseUrl || !candidateBaseUrl) {
+        alert('Please provide both Baseline Base URL and Candidate Base URL');
+        return;
+      }
+
+      const scenarios = [];
+      selectedCheckboxes.forEach(cb => {
+        const scenarioId = cb.value;
+        const baselineEndpointInput = document.querySelector(`.baseline-endpoint-input[data-scenario-id="${scenarioId}"]`);
+        const candidateEndpointInput = document.querySelector(`.candidate-endpoint-input[data-scenario-id="${scenarioId}"]`);
+        
+        scenarios.push({
+          scenario_id: scenarioId,
+          baseline_endpoint: baselineEndpointInput ? baselineEndpointInput.value.trim() : '',
+          candidate_endpoint: candidateEndpointInput ? candidateEndpointInput.value.trim() : '',
+        });
+      });
+
+      // Show loading state
+      const button = document.querySelector('button[onclick="runSelectedScenarios()"]');
+      const originalText = button ? button.textContent : 'Run Selected Scenarios';
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'Running...';
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors = [];
+
+      try {
+        // Run scenarios sequentially
+        for (const scenario of scenarios) {
+          try {
+            const formData = new FormData();
+            formData.append('scenario_id', scenario.scenario_id);
+            formData.append('candidate_base_url', candidateBaseUrl);
+            formData.append('candidate_endpoint', scenario.candidate_endpoint);
+            formData.append('baseline_base_url', baselineBaseUrl);
+            formData.append('baseline_endpoint', scenario.baseline_endpoint);
+
+            const response = await fetch('/run_custom', {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json' // Request JSON response instead of redirect
+              },
+              body: formData
+            });
+
+            // Check if request was successful
+            if (response.ok) {
+              try {
+                const result = await response.json();
+                if (result.success) {
+                  successCount++;
+                  console.log(`Successfully ran scenario ${scenario.scenario_id} - Run ID: ${result.run_id}, Risk: ${result.risk_score}, Action: ${result.action}`);
+                } else {
+                  errorCount++;
+                  errors.push(`Scenario ${scenario.scenario_id}: ${result.error || 'Unknown error'}`);
+                  console.error(`Failed to run scenario ${scenario.scenario_id}:`, result.error);
+                }
+              } catch (jsonError) {
+                // If response is not JSON, it might be HTML (redirect response)
+                const text = await response.text();
+                if (response.status === 302 || response.status === 200) {
+                  successCount++;
+                  console.log(`Successfully ran scenario ${scenario.scenario_id} - Status: ${response.status} (redirect response)`);
+                } else {
+                  errorCount++;
+                  errors.push(`Scenario ${scenario.scenario_id}: ${text}`);
+                  console.error(`Failed to run scenario ${scenario.scenario_id}:`, text);
+                }
+              }
+            } else {
+              const errorText = await response.text();
+              errorCount++;
+              errors.push(`Scenario ${scenario.scenario_id}: ${errorText}`);
+              console.error(`Failed to run scenario ${scenario.scenario_id}: Status ${response.status}, ${errorText}`);
+            }
+          } catch (error) {
+            errorCount++;
+            errors.push(`Scenario ${scenario.scenario_id}: ${error.message}`);
+            console.error(`Error running scenario ${scenario.scenario_id}:`, error);
+          }
+        }
+
+        // Show summary message
+        let message = `Successfully ran ${successCount} scenario(s)`;
+        if (errorCount > 0) {
+          message += `, ${errorCount} failed`;
+          console.warn('Errors:', errors);
+        }
+        console.log(message);
+        
+        // Show success/error message
+        if (errorCount > 0 && successCount === 0) {
+          alert(`Failed to run scenarios:\n${errors.join('\n')}`);
+          if (button) {
+            button.disabled = false;
+            button.textContent = originalText;
+          }
+          return;
+        }
+        
+        // Show success message
+        if (successCount > 0) {
+          console.log(`Successfully completed ${successCount} scenario(s)`);
+          if (errorCount > 0) {
+            console.warn(`${errorCount} scenario(s) failed`);
+          }
+        }
+        
+        // Wait a bit to ensure all writes are flushed to disk
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // Switch to Execution Results tab
+        const resultsTab = document.querySelector('.tab[data-tab="results"]');
+        if (resultsTab) {
+          showTab('results', resultsTab);
+        }
+        
+        // Reload page to show new results
+        window.location.reload();
+
+      } catch (error) {
+        alert('Error running scenarios: ' + error.message);
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
+    }
+
+    // Delete Selected Scenarios
+    async function deleteSelectedScenarios() {
+      const selectedCheckboxes = document.querySelectorAll('.scenario-checkbox:checked');
+      if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one scenario to delete');
+        return;
+      }
+
+      const scenarioNames = [];
+      selectedCheckboxes.forEach(cb => {
+        const row = cb.closest('tr');
+        const nameCell = row.querySelector('td:nth-child(3)'); // Name is in 3rd column
+        const name = nameCell ? nameCell.textContent.trim() : cb.value;
+        scenarioNames.push(name);
+      });
+
+      const confirmMessage = `Are you sure you want to delete ${selectedCheckboxes.length} scenario(s)?\n\n${scenarioNames.join('\n')}`;
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      // Show loading state
+      const button = event.target;
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Deleting...';
+
+      try {
+        const scenarioIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+        const formData = new FormData();
+        formData.append('scenario_ids', scenarioIds.join(','));
+
+        const response = await fetch('/delete_scenarios', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          // Reload the page to show updated scenario list
+          window.location.reload();
+        } else {
+          const errorText = await response.text();
+          alert('Error deleting scenarios: ' + errorText);
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      } catch (error) {
+        alert('Error deleting scenarios: ' + error.message);
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    }
+
+    // Swagger Analyzer Functions
+    let swaggerAnalyzerInitialized = false;
+    function initSwaggerAnalyzer() {
+      console.log('initSwaggerAnalyzer called');
+      const swaggerTab = document.getElementById('tab-swagger');
+      if (!swaggerTab) {
+        console.warn('Swagger tab not found');
+        return;
+      }
+      
+      // Check if tab is visible
+      const isVisible = swaggerTab.classList.contains('active') && 
+                       (swaggerTab.style.display === 'block' || 
+                        (swaggerTab.style.display === '' && window.getComputedStyle(swaggerTab).display === 'block'));
+      console.log('Swagger tab visible:', isVisible, 'display:', swaggerTab.style.display, 'classList:', swaggerTab.classList.toString());
+      
+      const analyzeForm = document.getElementById('analyzeForm');
+      if (!analyzeForm) {
+        console.warn('Swagger Analyzer form not found');
+        return; // Form not found, tab might not be loaded yet
+      }
+      
+      // Force form and all parent elements to be visible with proper dimensions
+      let current = analyzeForm;
+      while (current && current !== document.body) {
+        const computed = window.getComputedStyle(current);
+        if (computed.display === 'none' || computed.visibility === 'hidden' || computed.opacity === '0' || 
+            computed.width === '0px' || computed.height === '0px') {
+          if (current.tagName === 'FORM') {
+            current.style.display = 'block';
+          } else if (current.classList.contains('card')) {
+            current.style.display = 'block';
+            current.style.minHeight = 'auto';
+          } else if (current.classList.contains('tab-content')) {
+            current.style.display = 'block';
+            current.style.minHeight = 'auto';
+          } else {
+            current.style.display = computed.display === 'none' ? 'block' : computed.display;
+          }
+          current.style.visibility = 'visible';
+          current.style.opacity = '1';
+          current.style.position = current.style.position || 'relative';
+          current.style.width = current.style.width || 'auto';
+          current.style.height = current.style.height || 'auto';
+          current.style.minHeight = current.style.minHeight || 'auto';
+        }
+        current = current.parentElement;
+      }
+      
+      // Specifically ensure the card and tab are visible with dimensions
+      const formCard = analyzeForm.closest('.card');
+      if (formCard) {
+        formCard.style.display = 'block';
+        formCard.style.visibility = 'visible';
+        formCard.style.opacity = '1';
+        formCard.style.position = 'relative';
+        formCard.style.width = 'auto';
+        formCard.style.height = 'auto';
+        formCard.style.minHeight = 'auto';
+        formCard.style.padding = formCard.style.padding || '16px';
+      }
+      
+      // Ensure tab content is visible
+      if (swaggerTab) {
+        swaggerTab.style.display = 'block';
+        swaggerTab.style.visibility = 'visible';
+        swaggerTab.style.opacity = '1';
+        swaggerTab.style.position = 'relative';
+        swaggerTab.style.width = 'auto';
+        swaggerTab.style.height = 'auto';
+        swaggerTab.style.minHeight = 'auto';
+      }
+      
+      analyzeForm.style.display = 'block';
+      analyzeForm.style.visibility = 'visible';
+      analyzeForm.style.opacity = '1';
+      analyzeForm.style.position = 'relative';
+      analyzeForm.style.width = 'auto';
+      analyzeForm.style.height = 'auto';
+      analyzeForm.style.minHeight = 'auto';
+      
+      // Also ensure submit button is visible
+      const submitBtnCheck = document.getElementById('submitBtn');
+      if (submitBtnCheck) {
+        submitBtnCheck.style.display = 'block';
+        submitBtnCheck.style.visibility = 'visible';
+        submitBtnCheck.style.opacity = '1';
+      }
+      
+      // Force a reflow to ensure dimensions are calculated
+      void analyzeForm.offsetHeight;
+      
+      console.log('Swagger Analyzer form found, visible:', analyzeForm.offsetParent !== null);
+      console.log('Form computed styles:', {
+        display: window.getComputedStyle(analyzeForm).display,
+        visibility: window.getComputedStyle(analyzeForm).visibility,
+        opacity: window.getComputedStyle(analyzeForm).opacity,
+        position: window.getComputedStyle(analyzeForm).position
+      });
+      console.log('Parent card styles:', formCard ? {
+        display: window.getComputedStyle(formCard).display,
+        visibility: window.getComputedStyle(formCard).visibility,
+        opacity: window.getComputedStyle(formCard).opacity
+      } : 'No card found');
+      
+      // Verify all form elements exist before proceeding
+      const submitBtn = document.getElementById('submitBtn');
+      const results = document.getElementById('swagger-results');
+      const loading = document.getElementById('swagger-loading');
+      
+      console.log('Form elements check:', {
+        form: !!analyzeForm,
+        submitBtn: !!submitBtn,
+        results: !!results,
+        loading: !!loading,
+        formVisible: analyzeForm.offsetParent !== null,
+        formDisplay: window.getComputedStyle(analyzeForm).display,
+        tabVisible: swaggerTab.classList.contains('active'),
+        tabDisplay: swaggerTab.style.display
+      });
+      
+      if (!submitBtn || !results || !loading) {
+        console.error('Swagger Analyzer elements not found:', {
+          submitBtn: !!submitBtn,
+          results: !!results,
+          loading: !!loading
+        });
+        return;
+      }
+      
+      // If already initialized, don't add duplicate listener
+      if (swaggerAnalyzerInitialized) {
+        console.log('Swagger Analyzer already initialized, skipping');
+        return;
+      }
+      
+      swaggerAnalyzerInitialized = true;
+      
+      console.log('Attaching event listener to Swagger Analyzer form');
+      
+      // Wait a bit for DOM to fully render, then check dimensions
+      setTimeout(() => {
+        const rect = analyzeForm.getBoundingClientRect();
+        const inViewport = rect.top >= 0 && rect.left >= 0 && rect.width > 0 && rect.height > 0;
+        console.log('Form bounding rect (after delay):', {
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
+          inViewport: inViewport
+        });
+        
+        // If form still has zero size, force dimensions
+        if (rect.width === 0 || rect.height === 0) {
+          console.log('Form still has zero size, forcing dimensions...');
+          const formCard = analyzeForm.closest('.card');
+          if (formCard) {
+            const cardRect = formCard.getBoundingClientRect();
+            if (cardRect.width === 0) {
+              formCard.style.width = '100%';
+              formCard.style.minWidth = '300px';
+            }
+          }
+          analyzeForm.style.width = '100%';
+          analyzeForm.style.minWidth = '300px';
+          
+          // Force a reflow
+          void analyzeForm.offsetHeight;
+          
+          // Check again
+          const newRect = analyzeForm.getBoundingClientRect();
+          console.log('Form bounding rect (after forcing dimensions):', {
+            width: newRect.width,
+            height: newRect.height
+          });
+        }
+        
+        // If form is not in viewport, scroll to it
+        if (!inViewport && rect.width > 0 && rect.height > 0) {
+          console.log('Form not in viewport, scrolling to form...');
+          analyzeForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      
+      console.log('Form is ready and should be visible. Try submitting the form to test.');
+      
+      // Attach event listener to the form
+      analyzeForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          console.log('Swagger form submitted!');
+          const form = e.target;
+          const submitBtn = document.getElementById('submitBtn');
+          const results = document.getElementById('swagger-results');
+          const loading = document.getElementById('swagger-loading');
+          
+          if (!submitBtn || !results || !loading) {
+            console.error('Swagger Analyzer elements not found in submit handler');
+            return;
+          }
+          
+          submitBtn.disabled = true;
+          results.style.display = 'none';
+          loading.style.display = 'block';
+          
+          const formData = new FormData(form);
+          const inputMethod = formData.get('input_method') || 'url';
+          
+          let swaggerUrl = '';
+          let swaggerJson = '';
+          
+          // Handle different input methods
+          if (inputMethod === 'file') {
+            const fileInput = document.getElementById('swagger_file');
+            if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+              alert('Please select a Swagger JSON file');
+              submitBtn.disabled = false;
+              loading.style.display = 'none';
+              return;
+            }
+            // Read file content
+            const file = fileInput.files[0];
+            const fileContent = await file.text();
+            try {
+              JSON.parse(fileContent); // Validate JSON
+              swaggerJson = fileContent;
+            } catch (error) {
+              alert('Invalid JSON file: ' + error.message);
+              submitBtn.disabled = false;
+              loading.style.display = 'none';
+              return;
+            }
+          } else if (inputMethod === 'sample') {
+            const swaggerJsonText = document.getElementById('swagger_json').value;
+            if (!swaggerJsonText.trim()) {
+              alert('Please load or paste a sample Swagger JSON');
+              submitBtn.disabled = false;
+              loading.style.display = 'none';
+              return;
+            }
+            try {
+              JSON.parse(swaggerJsonText); // Validate JSON
+              swaggerJson = swaggerJsonText;
+            } catch (error) {
+              alert('Invalid JSON: ' + error.message);
+              submitBtn.disabled = false;
+              loading.style.display = 'none';
+              return;
+            }
+          } else {
+            swaggerUrl = formData.get('swagger_url') || '';
+            if (!swaggerUrl) {
+              alert('Please provide a Swagger URL');
+              submitBtn.disabled = false;
+              loading.style.display = 'none';
+              return;
+            }
+          }
+          
+          const data = {
+            swagger_url: swaggerUrl,
+            swagger_json: swaggerJson,
+            base_url: formData.get('base_url') || '',
+            headers_json: formData.get('headers_json') || '{}',
+            timeout: parseInt(formData.get('timeout') || '10'),
+            test_all: formData.get('test_all') === 'on',
+          };
+          
+          try {
+            const resp = await fetch('/api/swagger/analyze', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams(data),
+            });
+            
+            if (!resp.ok) {
+              const error = await resp.json();
+              throw new Error(error.error || 'Analysis failed');
+            }
+            
+            const analysis = await resp.json();
+            displaySwaggerResults(analysis);
+            
+          } catch (error) {
+            alert('Error: ' + error.message);
+          } finally {
+            submitBtn.disabled = false;
+            loading.style.display = 'none';
+          }
+        });
+    }
+
+    // Toggle Swagger input method
+    window.toggleSwaggerInputMethod = function() {
+      const inputMethod = document.querySelector('input[name="input_method"]:checked')?.value || 'url';
+      const urlInput = document.getElementById('swagger-url-input');
+      const fileInput = document.getElementById('swagger-file-input');
+      const sampleInput = document.getElementById('swagger-sample-input');
+      const urlField = document.getElementById('swagger_url');
+      
+      if (urlInput) urlInput.style.display = inputMethod === 'url' ? 'block' : 'none';
+      if (fileInput) fileInput.style.display = inputMethod === 'file' ? 'block' : 'none';
+      if (sampleInput) sampleInput.style.display = inputMethod === 'sample' ? 'block' : 'none';
+      
+      // Update required attribute
+      if (urlField) {
+        if (inputMethod === 'url') {
+          urlField.setAttribute('required', 'required');
+        } else {
+          urlField.removeAttribute('required');
+        }
+      }
+    };
+
+    // Load sample Swagger JSON
+    window.loadSampleSwagger = function() {
+      const sampleSwagger = {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Sample API with Mixed Endpoints",
+          "version": "1.0.0",
+          "description": "Sample Swagger/OpenAPI specification demonstrating healthy, broken, and auth-required endpoints"
+        },
+        "servers": [
+          {
+            "url": "https://httpbin.org",
+            "description": "Public test server - returns various status codes for testing"
+          },
+          {
+            "url": "http://localhost:8001",
+            "description": "Local development server"
+          }
+        ],
+        "components": {
+          "securitySchemes": {
+            "bearerAuth": {
+              "type": "http",
+              "scheme": "bearer",
+              "bearerFormat": "JWT"
+            },
+            "apiKeyAuth": {
+              "type": "apiKey",
+              "in": "header",
+              "name": "X-API-Key"
+            }
+          }
+        },
+        "paths": {
+          "/play": {
+            "get": {
+              "summary": "Healthy endpoint - should return 200",
+              "operationId": "getPlay",
+              "description": "This endpoint should succeed (healthy status)",
+              "responses": {
+                "200": {
+                  "description": "Success",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/status/200": {
+            "get": {
+              "summary": "Healthy endpoint - returns 200",
+              "operationId": "getStatus200",
+              "description": "Public endpoint that returns 200 OK",
+              "responses": {
+                "200": {
+                  "description": "Success"
+                }
+              }
+            }
+          },
+          "/status/404": {
+            "get": {
+              "summary": "Broken endpoint - returns 404",
+              "operationId": "getStatus404",
+              "description": "This endpoint returns 404 (broken status)",
+              "responses": {
+                "404": {
+                  "description": "Not found"
+                }
+              }
+            }
+          },
+          "/status/500": {
+            "get": {
+              "summary": "Broken endpoint - returns 500",
+              "operationId": "getStatus500",
+              "description": "This endpoint returns 500 (broken status)",
+              "responses": {
+                "500": {
+                  "description": "Internal server error"
+                }
+              }
+            }
+          },
+          "/status/401": {
+            "get": {
+              "summary": "Auth required - returns 401",
+              "operationId": "getStatus401",
+              "description": "This endpoint requires authentication (auth_required status)",
+              "security": [
+                {
+                  "bearerAuth": []
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Success (if authenticated)"
+                },
+                "401": {
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "/status/403": {
+            "get": {
+              "summary": "Auth required - returns 403",
+              "operationId": "getStatus403",
+              "description": "This endpoint requires authentication (auth_required status)",
+              "security": [
+                {
+                  "apiKeyAuth": []
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Success (if authenticated)"
+                },
+                "403": {
+                  "description": "Forbidden"
+                }
+              }
+            }
+          },
+          "/protected/users": {
+            "get": {
+              "summary": "Protected endpoint - requires auth",
+              "operationId": "getProtectedUsers",
+              "description": "This endpoint requires authentication",
+              "security": [
+                {
+                  "bearerAuth": []
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Success",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  }
+                },
+                "401": {
+                  "description": "Unauthorized"
+                }
+              }
+            }
+          },
+          "/broken/endpoint": {
+            "get": {
+              "summary": "Broken endpoint - invalid path",
+              "operationId": "getBrokenEndpoint",
+              "description": "This endpoint will likely return 404 or 500",
+              "responses": {
+                "404": {
+                  "description": "Not found"
+                },
+                "500": {
+                  "description": "Server error"
+                }
+              }
+            }
+          },
+          "/users": {
+            "get": {
+              "summary": "Get users - healthy endpoint",
+              "operationId": "getUsers",
+              "description": "Public endpoint to get users list",
+              "responses": {
+                "200": {
+                  "description": "Success",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "integer" },
+                            "name": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/users/{id}": {
+            "get": {
+              "summary": "Get user by ID",
+              "operationId": "getUserById",
+              "description": "Get a specific user by ID",
+              "parameters": [
+                {
+                  "name": "id",
+                  "in": "path",
+                  "required": true,
+                  "schema": { "type": "integer" }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Success"
+                },
+                "404": {
+                  "description": "User not found"
+                }
+              }
+            }
+          }
+        }
+      };
+      
+      const textarea = document.getElementById('swagger_json');
+      if (textarea) {
+        textarea.value = JSON.stringify(sampleSwagger, null, 2);
+        // Prettify the JSON
+        try {
+          const parsed = JSON.parse(textarea.value);
+          textarea.value = JSON.stringify(parsed, null, 2);
+        } catch (e) {
+          console.error('Error prettifying JSON:', e);
+        }
+      }
+    };
+
+    function displaySwaggerResults(analysis) {
+      // Stats
+      const statsHtml = `
+        <div class="stat-card">
+          <div class="stat-label">Healthy</div>
+          <div class="stat-value" style="color: var(--good);">${analysis.healthy_count || 0}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Broken</div>
+          <div class="stat-value" style="color: var(--bad);">${analysis.broken_count || 0}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Auth Required</div>
+          <div class="stat-value" style="color: var(--warn);">${analysis.auth_required_count || 0}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tested</div>
+          <div class="stat-value">${analysis.tested_endpoints || 0}</div>
+        </div>
+      `;
+      const statsDiv = document.getElementById('swagger-stats');
+      if (statsDiv) statsDiv.innerHTML = statsHtml;
+      
+      // Recommendations
+      const recsDiv = document.getElementById('swagger-recommendations');
+      if (recsDiv) {
+        if (analysis.recommendations && analysis.recommendations.length > 0) {
+          recsDiv.innerHTML = `
+            <h3 style="margin:0 0 12px; font-size:14px; color: var(--accent);">Recommendations</h3>
+            <ul style="margin: 0; padding-left: 20px;">
+              ${analysis.recommendations.map(r => `<li style="margin-bottom: 8px;">${r}</li>`).join('')}
+            </ul>
+          `;
+          recsDiv.style.display = 'block';
+        } else {
+          recsDiv.style.display = 'none';
+        }
+      }
+      
+      // Endpoints table
+      const tbody = document.getElementById('swagger-endpoints-body');
+      if (tbody) {
+        if (analysis.endpoint_tests && analysis.endpoint_tests.length > 0) {
+          tbody.innerHTML = analysis.endpoint_tests.map(test => {
+            const statusClass = test.status === 'healthy' ? 'pass' : test.status === 'broken' || test.status === 'timeout' ? 'fail' : 'warn';
+            return `
+              <tr>
+                <td><code>${test.method}</code></td>
+                <td><code>${test.path}</code></td>
+                <td><span class="badge ${statusClass}">${test.status}</span></td>
+                <td>${test.status_code || '-'}</td>
+                <td>${test.response_time_ms ? test.response_time_ms.toFixed(0) + 'ms' : '-'}</td>
+                <td style="color: var(--muted); font-size: 12px;">${test.error_message || '-'}</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--muted);">No endpoints tested</td></tr>';
+        }
+      }
+      
+      const resultsDiv = document.getElementById('swagger-results');
+      if (resultsDiv) resultsDiv.style.display = 'block';
+    }
+
+    // Initialize request body visibility on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ensure proper tab visibility on page load
+      const activeTab = sessionStorage.getItem('activeTab') || 'generator';
+      
+      // Hide all tabs first
+      document.querySelectorAll('.tab-content').forEach(content => {
+        if (content.id !== `tab-${activeTab}`) {
+          content.style.display = 'none';
+          content.style.visibility = 'hidden';
+          content.classList.remove('active');
+        }
+      });
+      
+      // If swagger tab should be active, ensure generator is hidden
+      if (activeTab === 'swagger') {
+        const generatorTab = document.getElementById('tab-generator');
+        if (generatorTab) {
+          generatorTab.style.display = 'none';
+          generatorTab.style.visibility = 'hidden';
+          generatorTab.style.opacity = '0';
+          generatorTab.classList.remove('active');
+        }
+        const seedForm = document.getElementById('seedForm');
+        if (seedForm) {
+          seedForm.style.display = 'none';
+          seedForm.style.visibility = 'hidden';
+        }
+      }
+      
+      // Ensure swagger loading is hidden by default
+      const swaggerLoading = document.getElementById('swagger-loading');
+      if (swaggerLoading) {
+        swaggerLoading.style.display = 'none';
+      }
+      
+      // Try to initialize Swagger Analyzer if tab is already visible
+      const swaggerTab = document.getElementById('tab-swagger');
+      if (swaggerTab && swaggerTab.classList.contains('active')) {
+        setTimeout(() => {
+          swaggerAnalyzerInitialized = false;
+          initSwaggerAnalyzer();
+        }, 100);
+      }
+      
+      // Initialize baseline options
+      toggleBaselineOptions();
+      
+      const baselineSelect = document.querySelector('select[name="baseline_request_type"]');
+      const candidateSelect = document.querySelector('select[name="candidate_request_type"]');
+      if (baselineSelect) {
+        toggleRequestBody('baseline', baselineSelect.value);
+      }
+      if (candidateSelect) {
+        toggleRequestBody('candidate', candidateSelect.value);
+      }
+      
+      // Set title attributes for URL trimming
+      function setupUrlTooltips() {
+        // Set title on URL input fields
+        const urlInputs = document.querySelectorAll('input[name="base_url"], input[name="candidate_base_url"], input[name="endpoint"], input[name="candidate_endpoint"], input.baseline-endpoint-input, input.candidate-endpoint-input, input#baseline_base_url, input#candidate_base_url');
+        urlInputs.forEach(input => {
+          if (input.value && input.value.trim()) {
+            input.title = input.value;
+          }
+          // Update title on input change
+          input.addEventListener('input', function() {
+            this.title = this.value || '';
+          });
+        });
+        
+        // Set title on table cells with URLs
+        const urlCells = document.querySelectorAll('table td code, table td .muted code');
+        urlCells.forEach(cell => {
+          const urlText = cell.textContent.trim();
+          if (urlText && (urlText.startsWith('http://') || urlText.startsWith('https://') || urlText.startsWith('/'))) {
+            cell.title = urlText;
+            // Also set on parent td if it exists
+            const parentTd = cell.closest('td');
+            if (parentTd) {
+              parentTd.title = urlText;
+            }
+          }
+        });
+      }
+      
+      // Initial setup
+      setupUrlTooltips();
+      
+      // Re-setup after table updates (e.g., after running scenarios)
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.addedNodes.length) {
+            setupUrlTooltips();
+          }
+        });
+      });
+      
+      // Observe the runs table for changes
+      const runsTable = document.getElementById('runsTable');
+      if (runsTable) {
+        observer.observe(runsTable, { childList: true, subtree: true });
+      }
+      
+      // Close modal on Escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          closeRequestModal();
+          closeDryRunModal();
+        }
+      });
+    });
 
     function clearRunAdvanced(){
       const f = document.getElementById("runForm");
@@ -400,6 +4120,38 @@
     // live validate on blur
     document.querySelectorAll("textarea.json").forEach((el)=>{
       el.addEventListener("blur", ()=>prettifyTextarea(el));
+    });
+
+    // Filter runs table by status
+    function filterRunsTable() {
+      const filter = document.getElementById('statusFilter').value;
+      const rows = document.querySelectorAll('#runsTable tbody tr');
+      let visibleCount = 0;
+      
+      rows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        if (filter === 'all' || status === filter) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+      
+      // Update filter count
+      const filterCountEl = document.getElementById('filterCount');
+      if (filter === 'all') {
+        filterCountEl.textContent = `Showing all ${visibleCount} runs`;
+      } else {
+        filterCountEl.textContent = `Showing ${visibleCount} ${filter} run${visibleCount !== 1 ? 's' : ''}`;
+      }
+    }
+    
+    // Initialize filter count on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      if (document.getElementById('runsTable')) {
+        filterRunsTable();
+      }
     });
   </script>
   </div>

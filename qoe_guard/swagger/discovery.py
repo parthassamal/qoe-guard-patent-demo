@@ -111,42 +111,62 @@ def discover_openapi_spec(
             if spec_url:
                 trace.append({"action": "discovered", "url": spec_url})
                 
-                # Fetch the discovered spec
-                spec_resp = requests.get(spec_url, headers=headers, timeout=timeout)
-                spec_resp.raise_for_status()
-                
-                # Parse the spec
                 try:
-                    spec = spec_resp.json()
-                    if _is_openapi_spec(spec):
-                        trace.append({"action": "parsed", "type": "discovered_json"})
-                        return DiscoveryResult(
-                            spec=spec,
-                            doc_url=spec_url,
-                            source_url=url,
-                            trace=trace,
-                            format="json",
-                        )
-                except json.JSONDecodeError:
-                    pass
-                
-                try:
-                    spec = yaml.safe_load(spec_resp.text)
-                    if _is_openapi_spec(spec):
-                        trace.append({"action": "parsed", "type": "discovered_yaml"})
-                        return DiscoveryResult(
-                            spec=spec,
-                            doc_url=spec_url,
-                            source_url=url,
-                            trace=trace,
-                            format="yaml",
-                        )
-                except yaml.YAMLError:
-                    pass
+                    # Fetch the discovered spec
+                    spec_resp = requests.get(spec_url, headers=headers, timeout=timeout)
+                    spec_resp.raise_for_status()
+                    
+                    # Parse the spec
+                    try:
+                        spec = spec_resp.json()
+                        if _is_openapi_spec(spec):
+                            trace.append({"action": "parsed", "type": "discovered_json"})
+                            return DiscoveryResult(
+                                spec=spec,
+                                doc_url=spec_url,
+                                source_url=url,
+                                trace=trace,
+                                format="json",
+                            )
+                    except json.JSONDecodeError as je:
+                        trace.append({"action": "json_parse_failed", "error": str(je)})
+                    
+                    try:
+                        spec = yaml.safe_load(spec_resp.text)
+                        if _is_openapi_spec(spec):
+                            trace.append({"action": "parsed", "type": "discovered_yaml"})
+                            return DiscoveryResult(
+                                spec=spec,
+                                doc_url=spec_url,
+                                source_url=url,
+                                trace=trace,
+                                format="yaml",
+                            )
+                    except yaml.YAMLError as ye:
+                        trace.append({"action": "yaml_parse_failed", "error": str(ye)})
+                except requests.RequestException as re:
+                    trace.append({"action": "fetch_failed", "url": spec_url, "error": str(re)})
+                    # Continue to try common paths
         
         # Try common OpenAPI paths relative to the URL
         base_url = _get_base_url(url)
+        parsed_url = urlparse(url)
+        
+        # If URL contains swagger-ui, try paths relative to the parent directory
+        if "swagger-ui" in parsed_url.path:
+            # Remove swagger-ui and index.html from path
+            path_parts = [p for p in parsed_url.path.split("/") if p and "swagger-ui" not in p and "index.html" not in p]
+            parent_path = "/" + "/".join(path_parts) if path_parts else ""
+            if parent_path and not parent_path.endswith("/"):
+                parent_path += "/"
+        else:
+            parent_path = parsed_url.path.rsplit("/", 1)[0] if "/" in parsed_url.path else ""
+            if parent_path and not parent_path.endswith("/"):
+                parent_path += "/"
+        
+        # Build comprehensive list of paths to try
         common_paths = [
+            # Root level paths
             "/openapi.json",
             "/swagger.json",
             "/api-docs",
@@ -156,6 +176,39 @@ def discover_openapi_spec(
             "/api/swagger.json",
             "/docs/openapi.json",
         ]
+        
+        # Paths relative to swagger-ui location (most important for Spring Boot)
+        if parent_path:
+            common_paths.extend([
+                f"{parent_path}openapi.json",
+                f"{parent_path}swagger.json",
+                f"{parent_path}v3/api-docs",
+                f"{parent_path}v2/api-docs",
+                f"{parent_path}api-docs",
+                f"{parent_path}v3/api-docs/swagger-config",
+                f"{parent_path}swagger-config.json",
+                f"{parent_path}api/v3/api-docs",
+                f"{parent_path}api/openapi.json",
+            ])
+        
+        # For /api/swagger-ui/index.html, try /api/v3/api-docs
+        if "/api/" in parsed_url.path:
+            api_base = "/api"
+            common_paths.extend([
+                f"{api_base}/v3/api-docs",
+                f"{api_base}/v2/api-docs",
+                f"{api_base}/openapi.json",
+                f"{api_base}/swagger.json",
+            ])
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_paths = []
+        for path in common_paths:
+            if path not in seen:
+                seen.add(path)
+                unique_paths.append(path)
+        common_paths = unique_paths
         
         for path in common_paths:
             try_url = urljoin(base_url, path)
@@ -180,10 +233,22 @@ def discover_openapi_spec(
             except requests.RequestException:
                 continue
         
-        raise DiscoveryError(f"Could not discover OpenAPI spec from {url}")
+        # Build detailed error message
+        error_parts = [f"Could not discover OpenAPI spec from {url}"]
+        if trace:
+            error_parts.append(f"Discovery trace: {len(trace)} steps attempted")
+            # Include last few trace steps for debugging
+            last_steps = trace[-3:] if len(trace) > 3 else trace
+            for step in last_steps:
+                if step.get("error"):
+                    error_parts.append(f"  - {step.get('action')}: {step.get('error', '')}")
+        
+        raise DiscoveryError(". ".join(error_parts))
         
     except requests.RequestException as e:
         raise DiscoveryError(f"HTTP error during discovery: {str(e)}")
+    except Exception as e:
+        raise DiscoveryError(f"Unexpected error during discovery: {str(e)}")
 
 
 def _is_openapi_spec(data: Any) -> bool:
@@ -217,20 +282,34 @@ def _find_spec_url_in_html(html: str, base_url: str) -> Optional[str]:
     - FastAPI OpenAPI URL
     - ReDoc spec-url attribute
     - Direct links to openapi.json/swagger.json
+    - SpringDoc OpenAPI configurations
     """
-    # SwaggerUIBundle url configuration
+    # SwaggerUIBundle url configuration - more comprehensive patterns
     patterns = [
-        # SwaggerUI: url: "..."
+        # SwaggerUI: url: "..." or url: '...' (most common)
         r'url:\s*["\']([^"\']+\.json)["\']',
         r'url:\s*["\']([^"\']+/openapi)["\']',
         r'url:\s*["\']([^"\']+/swagger)["\']',
         r'url:\s*["\']([^"\']+api-docs[^"\']*)["\']',
+        r'url:\s*["\']([^"\']+v3/api-docs)["\']',
+        r'url:\s*["\']([^"\']+v2/api-docs)["\']',
+        r'url:\s*["\']([^"\']+v3/api-docs/swagger-config)["\']',
+        
+        # SwaggerUI: SwaggerUIBundle({ url: "..." }) - multiline support
+        r'SwaggerUIBundle\s*\(\s*\{[^}]*url:\s*["\']([^"\']+)["\']',
+        r'SwaggerUIBundle\s*\(\s*\{[\s\S]{0,2000}?url:\s*["\']([^"\']+)["\']',
+        
+        # SpringDoc/Swagger UI v3: urls: [{ url: "..." }]
+        r'urls:\s*\[\s*\{[^}]*url:\s*["\']([^"\']+)["\']',
+        r'urls:\s*\[\s*\{[\s\S]{0,2000}?url:\s*["\']([^"\']+)["\']',
         
         # FastAPI: window.__OPENAPI_URL__ = "..."
         r'__OPENAPI_URL__\s*=\s*["\']([^"\']+)["\']',
+        r'window\.__OPENAPI_URL__\s*=\s*["\']([^"\']+)["\']',
         
         # ReDoc: spec-url="..."
         r'spec-url=["\']([^"\']+)["\']',
+        r'spec-url\s*=\s*["\']([^"\']+)["\']',
         
         # Generic: href to openapi.json or swagger.json
         r'href=["\']([^"\']*openapi\.json)["\']',
@@ -238,16 +317,29 @@ def _find_spec_url_in_html(html: str, base_url: str) -> Optional[str]:
         
         # configUrl for Swagger UI
         r'configUrl:\s*["\']([^"\']+)["\']',
+        
+        # SpringDoc: Try to find any JSON URL in the HTML
+        r'["\']([^"\']*v3/api-docs[^"\']*)["\']',
+        r'["\']([^"\']*openapi\.json[^"\']*)["\']',
+        r'["\']([^"\']*swagger\.json[^"\']*)["\']',
     ]
     
+    found_urls = []
     for pattern in patterns:
-        match = re.search(pattern, html, re.IGNORECASE)
-        if match:
+        matches = re.finditer(pattern, html, re.IGNORECASE | re.MULTILINE)
+        for match in matches:
             spec_url = match.group(1)
+            # Skip if it's clearly not a spec URL
+            if any(skip in spec_url.lower() for skip in ['css', '.js', '.png', '.jpg', '.svg', 'favicon']):
+                continue
             # Make absolute URL
             if not spec_url.startswith(("http://", "https://")):
                 spec_url = urljoin(base_url, spec_url)
-            return spec_url
+            found_urls.append(spec_url)
+    
+    # Return the first valid URL found
+    if found_urls:
+        return found_urls[0]
     
     return None
 
