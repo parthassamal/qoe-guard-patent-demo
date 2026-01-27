@@ -10,6 +10,9 @@ __pycache__/
 .venv/
 *.db
 
+# Environment variables
+.env
+
 # Allure Reports
 allure-results/
 allure-report/

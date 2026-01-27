@@ -46,6 +46,17 @@ python -m qoe_guard.main
 
 **Open http://localhost:8010** — You're ready to validate APIs!
 
+### Application Interface
+
+The QoE-Guard web interface provides four main tabs:
+
+- **Scenario Generator**: Create validation scenarios with baseline and candidate configurations
+- **Scenario Execution**: Manage and execute saved scenarios with batch operations
+- **Execution Results**: View analytics, risk scores, and detailed validation reports
+- **Swagger Analyzer**: Analyze OpenAPI/Swagger specifications for endpoint health
+
+Click the **About** button in the top-right corner for detailed information about workflows, features, risk score calculation, and technologies used.
+
 ### Alternative: Docker
 
 ```bash
@@ -65,6 +76,7 @@ docker-compose up
 - **Swagger → Executable Pipeline**: Auto-discover OpenAPI specs
 - **Multi-Select Orchestration**: Validate multiple endpoints in parallel
 - **Schema Conformance**: JSON Schema validation with detailed errors
+- **Swagger Analyzer**: Test all endpoints for broken links, auth issues, and timeouts
 
 </td>
 <td width="50%">
@@ -73,6 +85,7 @@ docker-compose up
 - **LLM Explanations**: GPT-4, Claude, Groq integration
 - **Semantic Drift Detection**: Detect field renames via embeddings
 - **Anomaly Detection**: Isolation Forest for runtime outliers
+- **Real-Time Risk Calculation**: Live algorithm-based scoring (not mock data)
 
 </td>
 </tr>
@@ -83,6 +96,7 @@ docker-compose up
 - **Brittleness Scoring**: 4-family signal fusion (0-100)
 - **QoE Risk Scoring**: Domain-weighted impact (0.0-1.0)
 - **Drift Classification**: Spec / Runtime / Undocumented
+- **Interactive Risk Details**: Modal with detailed calculation breakdown
 
 </td>
 <td width="50%">
@@ -91,10 +105,93 @@ docker-compose up
 - **Baseline Management**: Versioned with promotion workflows
 - **Audit Trail**: Complete change history with approvals
 - **Policy Engine**: Configurable thresholds and CI gates
+- **Batch Scenario Execution**: Run multiple scenarios with configurable base URLs
 
 </td>
 </tr>
 </table>
+
+### 🖥️ User Interface
+
+The application features a modern, tab-based interface with four main sections:
+![About App](docs/images/AboutApp1.png)
+![About App](docs/images/AboutApp2.png)
+
+1. **Scenario Generator** - Create validation scenarios with:
+   - Baseline and Candidate request configurations
+   - Support for live requests or JSON baselines
+   - Dry run capability for immediate testing
+   - Scenario editing functionality
+![Scenario Generator](docs/images/Scenario-Generator.png)
+![Scenario Dry Run](docs/images/Scenario-DryRun.png)
+
+2. **Scenario Execution** - Manage and execute scenarios:
+   - Scenario Repository with integer IDs (starting from 1)
+   - Baseline Base URL and Candidate Base URL configuration
+   - Individual Baseline and Candidate Endpoint Paths per scenario
+   - Checkbox selection for batch operations
+   - Run Selected Scenarios and Delete Selected Scenarios actions
+![Scenario Manage & Execute](docs/images/Scenario-Manage:Execution.png)
+
+3. **Execution Results** - View validation outcomes:
+   - Analytics dashboard with risk score trends
+   - Status distribution charts
+   - Detailed validation reports in modal overlays
+   - Baseline and Candidate URLs with full path information
+   - Interactive risk score details with calculation breakdown
+![Execution Dashboard](docs/images/Execution-Dashboard.png)
+![Execution Report](docs/images/Execution-Report.png)
+
+4. **Swagger Analyzer** - Analyze OpenAPI specifications:
+   - Multiple input methods: From URL, Upload JSON File, or Load Sample
+   - Sample Swagger JSON loader with comprehensive test endpoints
+   - Endpoint health analysis (Healthy, Broken, Auth Required, Tested)
+   - Recommendations for API improvements
+   - Direct JSON content support (no need for accessible URLs)
+   - Endpoint testing with configurable base URLs and headers
+![Swagger Analyzer & Results](docs/images/SwaggerAnalyzer-Results.png)
+
+---
+
+## 🔄 Application Workflow
+
+### Step-by-Step Process
+
+1. **Create Scenario** (Scenario Generator Tab)
+   - Define scenario name and tags
+   - Configure Baseline request (from live API or paste JSON)
+   - Configure Candidate endpoint (URL, path, headers, params)
+   - Use "Dry Run" to test without saving
+   - Save scenario for future use
+
+2. **Execute Scenarios** (Scenario Execution Tab)
+   - View all saved scenarios in the repository
+   - Configure Baseline Base URL and Candidate Base URL at the top
+   - Select scenarios using checkboxes
+   - Each scenario has individual Baseline and Candidate Endpoint Paths
+   - Click "Run Selected Scenarios" to execute batch validation
+
+3. **Review Results** (Execution Results Tab)
+   - View analytics dashboard with risk score trends
+   - See status distribution (PASS/WARN/FAIL)
+   - Click "Open Report" to view detailed validation results in modal
+   - Click info icon (ℹ️) next to risk score to see calculation details
+   - Review Baseline and Candidate URLs with full paths
+
+4. **Analyze Swagger** (Swagger Analyzer Tab)
+   - Choose input method: From URL, Upload JSON File, or Load Sample
+   - Load sample Swagger JSON to test analyzer capabilities
+   - Configure base URL, headers, and timeout
+   - Analyze endpoints for health status (Healthy, Broken, Auth Required)
+   - Review recommendations and endpoint details
+
+### Key UI Features
+
+- **About Modal**: Comprehensive information about workflows, features, risk calculation, and technologies
+- **Edit Scenario**: Update scenario details including baseline and candidate endpoint paths
+- **Batch Operations**: Select multiple scenarios and run or delete them together
+- **Interactive Modals**: Detailed reports and risk calculations displayed in overlay modals
+- **Real-Time Scoring**: Risk scores calculated using actual algorithm (not mock data)
 
 ---
 
@@ -333,6 +430,46 @@ QOE_GUARD_JWT_SECRET=your-secret-key
 QOE_GUARD_SLACK_WEBHOOK=https://hooks.slack.com/services/...
 ```
 
+### Technologies and Tools
+
+**Backend Framework:**
+- FastAPI - Modern Python web framework
+- Uvicorn - ASGI server
+- Pydantic - Data validation
+- SQLAlchemy - ORM & database
+- Jinja2 - Template engine
+
+**HTTP & API:**
+- Requests - HTTP client
+- HTTPX - Async HTTP client
+- OpenAPI Spec Validator
+- JSONSchema - Schema validation
+- PyYAML - YAML parsing
+
+**AI/ML Libraries:**
+- OpenAI SDK - GPT-4 integration
+- Anthropic SDK - Claude integration
+- Groq SDK - Fast inference
+- scikit-learn - Machine learning
+- NumPy - Numerical computing
+
+**Frontend:**
+- Vanilla JavaScript - No framework dependencies
+- Chart.js - Data visualization
+- Modern CSS - Responsive design
+
+**Testing & Quality:**
+- pytest - Testing framework
+- pytest-cov - Coverage
+- Allure - Test reporting
+- pytest-asyncio - Async tests
+
+**Infrastructure:**
+- Docker - Containerization
+- Docker Compose - Orchestration
+- Python 3.11+
+- JSON file storage
+
 ---
 
 ## 🏛️ Governance & Compliance
@@ -387,6 +524,12 @@ QOE_GUARD_SLACK_WEBHOOK=https://hooks.slack.com/services/...
 | `POST` | `/governance/promotions` | Request baseline promotion |
 | `GET` | `/ai/status` | Check AI component status |
 | `POST` | `/ai/analyze-diff` | LLM-powered diff analysis |
+| `POST` | `/seed_custom` | Create or update scenario |
+| `POST` | `/update_scenario` | Update scenario details |
+| `POST` | `/delete_scenarios` | Delete selected scenarios |
+| `POST` | `/run_custom` | Execute validation run |
+| `GET` | `/api/runs/{run_id}` | Get validation run details |
+| `POST` | `/api/swagger/analyze` | Analyze Swagger/OpenAPI specification |
 
 ### CLI Usage
 
